@@ -1,0 +1,34 @@
+# OS / editor junk
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/
+
+# Logs / temp files
+*.log
+*.tmp
+*.bak
+.cache/
+tmp/
+temp/
+
+# Dependency/build folders if added later
+node_modules/
+dist/
+build/
+
+# Environment / secrets
+.env
+.env.*
+*.pem
+*.key
+
+# Local archives/backups
+*.zip
+*.7z
+*.rar
+
+# Internal planning / supplier notes
+source-peptide-*.txt
+source-peptide-*.md
