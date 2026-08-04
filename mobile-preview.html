@@ -1,6 +1,18 @@
 <!doctype html>
 <html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Knight Labs Mobile Preview</title><style>
-body{margin:0;background:#111;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:24px}h1{font-size:20px;margin:0 0 14px}.frames{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}.phone{width:390px;border:10px solid #050505;border-radius:32px;background:#050505;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}.bar{height:28px;background:#050505;color:#c9a83a;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}iframe{width:390px;height:844px;border:0;background:white;display:block}.label{margin:10px 0 0;color:#ddd;font-size:13px;text-align:center}</style></head><body><h1>Knight Labs mobile preview frames</h1><div class="frames">
+body{margin:0;background:#111;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif;padding:24px}h1{font-size:20px;margin:0 0 14px}.frames{display:flex;gap:22px;align-items:flex-start;flex-wrap:wrap}.phone{width:390px;border:10px solid #050505;border-radius:32px;background:#050505;box-shadow:0 20px 60px rgba(0,0,0,.45);overflow:hidden}.bar{height:28px;background:#050505;color:#c9a83a;font-size:12px;display:flex;align-items:center;justify-content:center;font-weight:700}iframe{width:390px;height:844px;border:0;background:white;display:block}.label{margin:10px 0 0;color:#ddd;font-size:13px;text-align:center}
+
+/* Knight Labs card system refinement */
+.card,.supply-card,.trust-card,.category{border-color:#b99431!important;border-radius:26px!important;background:linear-gradient(145deg,#fffdf8 0%,#f8edcf 100%)!important;box-shadow:0 30px 80px rgba(20,15,3,.16),inset 0 0 0 1px rgba(255,255,255,.7)!important}
+.card,.supply-card,.category{position:relative;overflow:hidden;padding-top:56px!important}
+.card:before,.supply-card:before,.category:before{content:"RESEARCH SUPPLY";position:absolute;top:0;left:0;right:0;height:38px;display:flex;align-items:center;padding:0 22px;border-bottom:1px solid rgba(212,175,55,.34);background:#11100b;color:var(--gold2);font-size:10px;font-weight:950;letter-spacing:.18em;z-index:2}
+.card:hover,.supply-card:hover,.category:hover{border-color:#ad8423!important;box-shadow:0 34px 90px rgba(20,15,3,.20),inset 0 0 0 1px rgba(255,255,255,.72)!important}
+.card .btn.primary,.supply-card .btn.primary,.category .btn.primary{border-radius:7px;box-shadow:0 12px 30px rgba(118,85,5,.18)}
+.badge.avail{border-color:rgba(140,103,19,.26)!important;background:rgba(255,240,168,.45)!important;color:#765505!important}
+.product-info:after{display:none!important}
+@media(max-width:680px){.card,.supply-card,.category{padding-top:52px!important}.card:before,.supply-card:before,.category:before{height:34px;padding:0 18px;font-size:9px}}
+
+</style></head><body><h1>Knight Labs mobile preview frames</h1><div class="frames">
 <div><div class="phone"><div class="bar">Browse Supply — 390px</div><iframe src="/supply-categories.html?v=mobile"></iframe></div><div class="label">Catalog grid + filters</div></div>
 <div><div class="phone"><div class="bar">Product Detail — 390px</div><iframe src="/product-retatrutide.html?v=mobile"></iframe></div><div class="label">Product page</div></div>
 <div><div class="phone"><div class="bar">Checkout — 390px</div><iframe src="/checkout.html?v=mobile"></iframe></div><div class="label">Checkout form</div></div>

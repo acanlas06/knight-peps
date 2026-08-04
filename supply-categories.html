@@ -127,7 +127,20 @@
   .supply-card{min-height:330px!important}.vial-area{height:215px!important}.supply-card img{height:196px!important}
 }
 
+
+
+/* Knight Labs card system refinement */
+.card,.supply-card,.trust-card,.category{border-color:#b99431!important;border-radius:26px!important;background:linear-gradient(145deg,#fffdf8 0%,#f8edcf 100%)!important;box-shadow:0 30px 80px rgba(20,15,3,.16),inset 0 0 0 1px rgba(255,255,255,.7)!important}
+.card,.supply-card,.category{position:relative;overflow:hidden;padding-top:56px!important}
+.card:before,.supply-card:before,.category:before{content:"RESEARCH SUPPLY";position:absolute;top:0;left:0;right:0;height:38px;display:flex;align-items:center;padding:0 22px;border-bottom:1px solid rgba(212,175,55,.34);background:#11100b;color:var(--gold2);font-size:10px;font-weight:950;letter-spacing:.18em;z-index:2}
+.card:hover,.supply-card:hover,.category:hover{border-color:#ad8423!important;box-shadow:0 34px 90px rgba(20,15,3,.20),inset 0 0 0 1px rgba(255,255,255,.72)!important}
+.card .btn.primary,.supply-card .btn.primary,.category .btn.primary{border-radius:7px;box-shadow:0 12px 30px rgba(118,85,5,.18)}
+.badge.avail{border-color:rgba(140,103,19,.26)!important;background:rgba(255,240,168,.45)!important;color:#765505!important}
+.product-info:after{display:none!important}
+@media(max-width:680px){.card,.supply-card,.category{padding-top:52px!important}.card:before,.supply-card:before,.category:before{height:34px;padding:0 18px;font-size:9px}}
+
 </style>
+  <link rel="stylesheet" href="assets/compliance-gate.css">
 </head>
 <body>
   <header class="header">
@@ -196,5 +209,6 @@
     });
   </script>
   <a class="floating-cart" href="cart.html" aria-label="View and edit cart">Cart <span class="cart-count" data-cart-count>0</span></a>
+  <script src="assets/compliance-gate.js" defer></script>
 </body>
 </html>
