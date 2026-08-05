@@ -24,6 +24,10 @@ build/
 *.pem
 *.key
 
+# Local auth store (created by server.py; salted password hashes, not plaintext)
+accounts.json
+accounts.json.tmp
+
 # Local archives/backups
 *.zip
 *.7z
@@ -32,3 +36,13 @@ build/
 # Internal planning / supplier notes
 source-peptide-*.txt
 source-peptide-*.md
+
+# Local dev mail drop (password reset emails when SMTP is unconfigured)
+outbox/
+
+# SMTP credentials for password-reset email (never commit)
+smtp-config.json
+
+# Python bytecode
+__pycache__/
+*.pyc

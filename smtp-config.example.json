@@ -1,0 +1,17 @@
+{
+  "_readme": "Copy this file to smtp-config.json and fill in the password. smtp-config.json is gitignored so your credentials never get committed. Keys starting with _ are ignored.",
+  "_gmail_note": "For Gmail you must enable 2-Step Verification, then generate a 16-character App Password at myaccount.google.com/apppasswords. Your normal account password will NOT work. Paste the app password below with or without spaces.",
+
+  "host": "smtp.gmail.com",
+  "port": 587,
+  "tls": true,
+  "user": "knightpeps@gmail.com",
+  "password": "PASTE_YOUR_16_CHARACTER_APP_PASSWORD_HERE",
+  "from": "knightpeps@gmail.com",
+
+  "_other_providers": {
+    "outlook": { "host": "smtp-mail.outlook.com", "port": 587, "tls": true },
+    "resend":  { "host": "smtp.resend.com", "port": 587, "tls": true, "user": "resend" },
+    "sendgrid":{ "host": "smtp.sendgrid.net", "port": 587, "tls": true, "user": "apikey" }
+  }
+}

@@ -12,8 +12,52 @@
 .empty-state{border:1px dashed var(--line);border-radius:16px;padding:30px;text-align:center;color:var(--muted);background:var(--surface)}.empty-state a{color:var(--gold);font-weight:700}
 .wishlist-row{display:flex;gap:20px;align-items:flex-start}.wishlist-thumb{width:64px;height:84px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 10px 16px rgba(20,15,3,.18))}.wishlist-body{flex:1;min-width:0}.wishlist-price{font-size:14px;font-weight:950;color:var(--gold3)}body.dark-mode .wishlist-price{color:var(--gold)}
 .address-card-actions a.btn-small{display:inline-flex;align-items:center;text-decoration:none}
-@media(max-width:520px){.wishlist-row{gap:14px}.wishlist-thumb{width:48px;height:64px}}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
+@media(max-width:520px){.wishlist-row{gap:14px}.wishlist-thumb{width:48px;height:64px}}
+.welcome-title{font-size:30px;letter-spacing:-.04em;line-height:1.05;margin-bottom:6px}
+.welcome-sub{color:var(--muted);font-size:14px}.welcome-sub strong{color:var(--ink);font-weight:800}.welcome-sub a{color:var(--gold3);font-weight:800;text-decoration:none}body.dark-mode .welcome-sub a{color:var(--gold)}.welcome-sub a:hover{text-decoration:underline}
+.bento{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+.bento-tile{border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:20px;box-shadow:var(--card-shadow);text-decoration:none;color:inherit;transition:border-color .18s,transform .18s;display:block}
+a.bento-tile:hover{border-color:var(--gold3);transform:translateY(-2px)}
+.bento-icon{display:block;font-size:19px;line-height:1;margin-bottom:10px;color:var(--gold3)}
+body.dark-mode .bento-icon{color:var(--gold2)}
+.bento-value{font-size:28px;font-weight:950;letter-spacing:-.04em;line-height:1}
+.bento-label{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:5px}
+.bento-welcome{grid-column:span 2;background:linear-gradient(135deg,#11100b,#2a2109);border-color:rgba(212,175,55,.3);display:flex;flex-direction:column;justify-content:center}
+.bento-welcome-title{font-size:26px;font-weight:950;letter-spacing:-.035em;color:var(--cream);line-height:1.1}
+.bento-welcome-sub{font-size:13px;color:rgba(255,247,223,.6);margin-top:6px;word-break:break-all}
+.bento-cart{background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:rgba(118,85,5,.3)}
+.bento-cart .bento-value{color:#080604}
+.bento-cart .bento-label{color:#6d5008}
+.bento-last{grid-column:span 3;display:flex;align-items:center;justify-content:space-between;gap:18px;flex-wrap:wrap}
+.bento-last-title{font-size:15px;font-weight:900;letter-spacing:-.01em}
+.bento-last-sub{font-size:13px;color:var(--muted);margin-top:4px}
+.bento-pill{background:#11100b;color:var(--gold2);font-size:13px;font-weight:900;padding:9px 18px;border-radius:999px;flex:0 0 auto}
+body.dark-mode .bento-pill{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#080604}
+@media(max-width:820px){.bento{grid-template-columns:repeat(2,minmax(0,1fr))}.bento-welcome{grid-column:span 2}.bento-last{grid-column:span 2}}
+@media(max-width:520px){.bento{grid-template-columns:1fr}.bento-welcome,.bento-last{grid-column:span 1}.bento-welcome-title{font-size:22px}.bento-value{font-size:24px}}
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin:26px 0 16px}
+.stat-card{display:flex;flex-direction:column;gap:4px;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:18px 20px;box-shadow:var(--card-shadow);text-decoration:none;color:inherit;transition:border-color .18s,transform .18s}
+.stat-card:hover{border-color:var(--gold3);transform:translateY(-2px)}
+.stat-value{font-size:30px;font-weight:950;letter-spacing:-.04em;line-height:1}
+.stat-label{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.stat-card.accent{border-color:var(--gold);background:linear-gradient(180deg,var(--surface),var(--surface-2))}.stat-card.accent .stat-value{color:var(--gold3)}body.dark-mode .stat-card.accent .stat-value{color:var(--gold2)}
+.action-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.action-tile{display:flex;flex-direction:column;gap:6px;border:1px solid var(--line);border-radius:16px;background:var(--surface);padding:20px;text-decoration:none;color:inherit;box-shadow:var(--card-shadow);transition:border-color .18s,transform .18s}
+.action-tile:hover{border-color:var(--gold3);transform:translateY(-2px)}
+.action-icon{font-size:21px;line-height:1}
+.action-title{font-size:15px;font-weight:900;letter-spacing:-.01em}
+.action-sub{font-size:13px;color:var(--muted)}
+.action-tile.primary{background:linear-gradient(135deg,#11100b,#2a2109);border-color:rgba(212,175,55,.4)}
+.action-tile.primary .action-title{color:var(--cream)}.action-tile.primary .action-sub{color:rgba(255,247,223,.62)}
+.action-tile.primary:hover{border-color:var(--gold)}
+@media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.action-grid{grid-template-columns:1fr}}
+@media(max-width:520px){.welcome-title{font-size:24px}.stat-value{font-size:25px}}
+.reset-message{margin-top:14px;font-weight:800;padding:12px 15px;border-radius:10px;font-size:13px;max-width:520px}
+.reset-message.success{color:#4d7a28;background:rgba(123,162,79,.14);border:1px solid rgba(123,162,79,.42)}
+.reset-message.error{color:#e5534b;background:rgba(229,83,75,.12);border:1px solid rgba(229,83,75,.42)}
+body.dark-mode .reset-message.success{color:#a7cc7d}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
 </style>
+<link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
 </head><body>
 
 <aside class="sidebar" id="sidebar">
@@ -60,13 +104,47 @@
   <div class="dashboard-content" id="dashboardContent">
     <!-- Dashboard Section -->
     <section id="dashboard-section">
-      <div class="notification">
-        📋 Your Knight Labs account is active and ready to use.
+      <div class="welcome-section">
+        <h2 class="welcome-title">Welcome back</h2>
+        <p class="welcome-sub"><strong id="userEmail">user</strong> · <a href="#logout" id="quickLogout">Log out</a></p>
       </div>
 
-      <div class="welcome-section">
-        <p class="greeting">Hello <strong id="userEmail">user</strong> (<a href="#logout" id="quickLogout">Log out</a>)</p>
-        <p class="description">From your account dashboard you can view your <a href="#orders">recent orders</a>, manage your <a href="#addresses">shipping and billing addresses</a>, and <a href="#account-details">edit your password and account details</a>.</p>
+      <div class="bento">
+        <div class="bento-tile bento-welcome">
+          <div class="bento-welcome-title">Welcome back</div>
+          <div class="bento-welcome-sub" id="bentoEmail">user</div>
+        </div>
+
+        <a class="bento-tile bento-cart" href="cart.html">
+          <div class="bento-value" id="bentoCart">$0</div>
+          <div class="bento-label" id="bentoCartLabel">Items in cart</div>
+        </a>
+
+        <a class="bento-tile" href="#orders">
+          <span class="bento-icon">📦</span>
+          <div class="bento-value" id="bentoOrders">0</div>
+          <div class="bento-label">Orders</div>
+        </a>
+
+        <a class="bento-tile" href="#wishlist">
+          <span class="bento-icon">♥</span>
+          <div class="bento-value" id="bentoWishlist">0</div>
+          <div class="bento-label">Wishlist</div>
+        </a>
+
+        <a class="bento-tile" href="#addresses">
+          <span class="bento-icon">📍</span>
+          <div class="bento-value" id="bentoAddresses">0</div>
+          <div class="bento-label">Addresses</div>
+        </a>
+
+        <a class="bento-tile bento-last" href="#orders" id="bentoLastOrder">
+          <div>
+            <div class="bento-last-title" id="bentoLastTitle">No orders yet</div>
+            <div class="bento-last-sub" id="bentoLastSub">Your most recent order will appear here</div>
+          </div>
+          <span class="bento-pill" id="bentoLastPill">Shop</span>
+        </a>
       </div>
     </section>
 
@@ -148,7 +226,9 @@
         </div>
         <div style="margin-bottom:24px">
           <label style="display:block;font-weight:700;margin-bottom:8px">Password</label>
-          <a href="#" style="color:var(--gold);text-decoration:none">Change password</a>
+          <button class="btn-secondary" type="button" id="changePasswordBtn">Change password</button>
+          <p class="description" style="margin-top:10px;font-size:13px">We'll email you a secure link to choose a new password. The link expires in 1 hour.</p>
+          <p id="passwordMessage" class="reset-message" role="status" aria-live="polite" hidden></p>
         </div>
       </div>
     </section>
@@ -182,22 +262,19 @@ document.addEventListener('DOMContentLoaded',function(){
     window.location.href='account.html';
   }
 
-  // Theme toggle
+  // Theme toggle — delegates to assets/theme.js so the choice applies to the
+  // whole site and is stored against this account.
   var themeToggle=document.getElementById('themeToggle');
-  var isDarkMode=localStorage.getItem('knightLabsDarkMode')==='true';
 
-  function applyTheme(dark){
-    // All theming flows from CSS custom properties on <body>, so every
-    // surface, border and input follows automatically.
-    document.body.classList.toggle('dark-mode',dark);
-    themeToggle.textContent=dark?'☀️ Light Mode':'🌙 Dark Mode';
-    localStorage.setItem('knightLabsDarkMode',String(dark));
+  function syncToggleLabel(){
+    themeToggle.textContent=window.KnightTheme.isDark()?'☀️ Light Mode':'🌙 Dark Mode';
   }
 
-  applyTheme(isDarkMode);
+  window.KnightTheme.refresh();
+  syncToggleLabel();
   themeToggle.addEventListener('click',function(){
-    isDarkMode=!isDarkMode;
-    applyTheme(isDarkMode);
+    window.KnightTheme.toggle();
+    syncToggleLabel();
   });
 
   // Order history
@@ -236,6 +313,56 @@ document.addEventListener('DOMContentLoaded',function(){
         +addrBlock
         +'</div>';
     }).join('');
+  }
+
+  // Dashboard summary — every figure comes from the account's own stored data
+  function readCart(){
+    try{
+      var cart=JSON.parse(localStorage.getItem('knightLabsCart')||'[]');
+      return Array.isArray(cart)?cart:[];
+    }catch(e){return [];}
+  }
+  function shortDate(iso){
+    var d=new Date(iso);
+    if(isNaN(d.getTime()))return '';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'});
+  }
+  function renderDashboard(){
+    var orders=getOrders();
+    var wishlist=getWishlist();
+    var addresses=getAddresses();
+    var cart=readCart();
+
+    var cartQty=cart.reduce(function(n,i){return n+(parseInt(i.qty,10)||0);},0);
+    var cartTotal=cart.reduce(function(n,i){
+      var sizes=KL_PRICES[i.slug]||{};
+      return n+(sizes[i.size]||0)*(parseInt(i.qty,10)||0);
+    },0);
+
+    document.getElementById('bentoEmail').textContent=userEmail;
+    document.getElementById('bentoOrders').textContent=orders.length;
+    document.getElementById('bentoWishlist').textContent=wishlist.length;
+    document.getElementById('bentoAddresses').textContent=addresses.length;
+    document.getElementById('bentoCart').textContent=money(cartTotal);
+    document.getElementById('bentoCartLabel').textContent=cartQty===1?'1 item in cart':cartQty+' items in cart';
+
+    // Last order strip — falls back to a shop prompt on a fresh account
+    var last=orders[0];
+    var lastTile=document.getElementById('bentoLastOrder');
+    if(last){
+      var count=last.itemCount||0;
+      document.getElementById('bentoLastTitle').textContent='Last order · '+last.orderNumber;
+      document.getElementById('bentoLastSub').textContent=
+        (last.placedAt?shortDate(last.placedAt)+' · ':'')
+        +(count===1?'1 item':count+' items')+' · '+money(last.total);
+      document.getElementById('bentoLastPill').textContent='View';
+      lastTile.setAttribute('href','#orders');
+    }else{
+      document.getElementById('bentoLastTitle').textContent='No orders yet';
+      document.getElementById('bentoLastSub').textContent='Your most recent order will appear here';
+      document.getElementById('bentoLastPill').textContent='Shop';
+      lastTile.setAttribute('href','supply-categories.html');
+    }
   }
 
   // Wishlist
@@ -391,13 +518,14 @@ document.addEventListener('DOMContentLoaded',function(){
     var editIdx=parseInt(this.dataset.editIdx,10);
     if(!isNaN(editIdx)){
       var wasPrimary=!!addresses[editIdx].isPrimary;
-      addresses[editIdx]={name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:wasPrimary};
+      var addedAt=addresses[editIdx].addedAt;
+      addresses[editIdx]={name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:wasPrimary,addedAt:addedAt};
       delete this.dataset.editIdx;
       this.textContent='Save Address';
     }else{
       // First address added becomes primary automatically
       var makePrimary=addresses.length===0;
-      addresses.push({name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:makePrimary});
+      addresses.push({name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:makePrimary,addedAt:new Date().toISOString()});
     }
     // Guarantee exactly one primary
     if(addresses.length&&!addresses.some(function(a){return a.isPrimary;})){
@@ -456,6 +584,8 @@ document.addEventListener('DOMContentLoaded',function(){
       renderOrders();
     }else if(section==='wishlist'){
       renderWishlist();
+    }else if(section==='dashboard'){
+      renderDashboard();
     }
 
     // Keep the URL in sync so the tab survives a refresh and can be linked to
@@ -479,13 +609,65 @@ document.addEventListener('DOMContentLoaded',function(){
     });
   });
 
+  // Change password — request a reset link by email
+  var changePasswordBtn=document.getElementById('changePasswordBtn');
+  var passwordMessage=document.getElementById('passwordMessage');
+  if(changePasswordBtn&&passwordMessage){
+    changePasswordBtn.addEventListener('click',function(){
+      var btn=this;
+      function say(text,kind){
+        passwordMessage.textContent=text;
+        passwordMessage.className='reset-message '+kind;
+        passwordMessage.hidden=false;
+      }
+      if(!userEmail){
+        say('You need to be signed in to change your password.','error');
+        return;
+      }
+      btn.disabled=true;
+      var original=btn.textContent;
+      btn.textContent='Sending…';
+      fetch('/api/request-password-reset',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({email:userEmail})
+      }).then(function(res){
+        return res.json().catch(function(){return {};}).then(function(data){
+          return {status:res.status,data:data||{}};
+        });
+      }).then(function(result){
+        if(result.data.ok){
+          if(result.data.delivery==='smtp'){
+            say('Password reset link emailed to '+userEmail+'. Check your inbox — the link expires in 1 hour.','success');
+          }else{
+            // No SMTP configured: say what actually happened instead of
+            // telling the user to watch an inbox that will stay empty.
+            say('Email is not configured on this server, so no message was sent. The reset link was printed in the server console and saved to outbox\\. It expires in 1 hour.','success');
+          }
+        }else if(result.data.code==='throttled'){
+          say('A reset link was just sent. Wait a minute before requesting another.','error');
+        }else{
+          say('Could not send the reset email. Please try again.','error');
+        }
+      }).catch(function(){
+        say('Could not reach the server. Start it with: python server.py','error');
+      }).finally(function(){
+        btn.disabled=false;
+        btn.textContent=original;
+      });
+    });
+  }
+
   // Deep links: account-dashboard.html#wishlist opens straight to that tab
   function openFromHash(updateHash){
     var section=(location.hash||'').replace(/^#/,'');
     if(!section||section==='logout')return false;
     return activateSection(section,updateHash);
   }
-  openFromHash(false);
+  // Populate the default view too, since no hash means no activateSection call
+  if(!openFromHash(false)){
+    renderDashboard();
+  }
   window.addEventListener('hashchange',function(){openFromHash(false);});
 
   // In-content links that jump to a sidebar section
@@ -520,6 +702,9 @@ document.addEventListener('DOMContentLoaded',function(){
     // Clear general cart and logged in state
     localStorage.removeItem('knightLabsCart');
     localStorage.removeItem('knightLabsLoggedIn');
+    // Signed out — fall back to the guest theme rather than keeping this
+    // account's preference on a shared browser.
+    if(window.KnightTheme)window.KnightTheme.refresh();
     window.location.href='account.html';
   }
 

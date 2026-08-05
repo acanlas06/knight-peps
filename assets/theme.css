@@ -1,0 +1,218 @@
+/* Knight Labs — dark theme overrides
+ *
+ * The storefront pages carry their palette as hardcoded hex values inside each
+ * page's <style> block. Rather than rewrite twenty pages, this sheet remaps the
+ * light surfaces when html[data-theme="dark"] is set by theme.js.
+ *
+ * !important is used deliberately: these rules must beat per-page <style>
+ * blocks regardless of link order. Everything is scoped to dark mode, so light
+ * mode renders exactly as it always has.
+ *
+ * The hero, header and footer are already black-and-gold and are left alone.
+ */
+
+html[data-theme="dark"] {
+  --kl-page: #0a0907;
+  --kl-surface: #14130f;
+  --kl-surface-2: #1b1914;
+  --kl-input: #0f0e0b;
+  --kl-line: #332f29;
+  --kl-line-soft: #292620;
+  --kl-text: #f5efe5;
+  --kl-muted: #a49c92;
+  --kl-gold: #d4af37;
+  --kl-gold-soft: #e8c964;
+}
+
+html[data-theme="dark"] body {
+  background: var(--kl-page) !important;
+  color: var(--kl-text) !important;
+}
+
+/* Panels, cards and other raised surfaces */
+html[data-theme="dark"] .card,
+html[data-theme="dark"] .supply-card,
+html[data-theme="dark"] .trust-card,
+html[data-theme="dark"] .category,
+html[data-theme="dark"] .quality-card,
+html[data-theme="dark"] .product-info,
+html[data-theme="dark"] .product-stage,
+html[data-theme="dark"] .product-media,
+html[data-theme="dark"] .product-panel,
+html[data-theme="dark"] .cart-panel,
+html[data-theme="dark"] .checkout-panel,
+html[data-theme="dark"] .account-panel,
+html[data-theme="dark"] .panel,
+html[data-theme="dark"] .faq-list details,
+html[data-theme="dark"] .step,
+html[data-theme="dark"] .proof-card {
+  background: var(--kl-surface) !important;
+  border-color: var(--kl-line) !important;
+  color: var(--kl-text) !important;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, .40) !important;
+}
+
+/* Secondary surfaces that sat on a warmer cream */
+html[data-theme="dark"] .vial-area,
+html[data-theme="dark"] .card-info,
+html[data-theme="dark"] .cart-item,
+html[data-theme="dark"] .editable-cart-item,
+html[data-theme="dark"] .mini-item,
+html[data-theme="dark"] .detail,
+html[data-theme="dark"] .price-card,
+html[data-theme="dark"] .checkline,
+html[data-theme="dark"] .note,
+html[data-theme="dark"] .notice-box,
+html[data-theme="dark"] .empty-cart,
+html[data-theme="dark"] .chip,
+html[data-theme="dark"] .option {
+  background: var(--kl-surface-2) !important;
+  border-color: var(--kl-line) !important;
+  color: var(--kl-text) !important;
+}
+
+/* The catalog cards use a hard gradient stop between vial and label area */
+html[data-theme="dark"] .supply-card {
+  background: linear-gradient(180deg, var(--kl-surface) 0%, var(--kl-surface) 64%, var(--kl-surface-2) 64%, var(--kl-surface-2) 100%) !important;
+}
+
+/* Body copy and headings */
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] .card h3,
+html[data-theme="dark"] .mini-item b,
+html[data-theme="dark"] .detail b,
+html[data-theme="dark"] .summary-total {
+  color: var(--kl-text) !important;
+}
+
+html[data-theme="dark"] .desc,
+html[data-theme="dark"] .section-head p,
+html[data-theme="dark"] .price-note,
+html[data-theme="dark"] .trust-card p,
+html[data-theme="dark"] .note,
+html[data-theme="dark"] .notice-box,
+html[data-theme="dark"] .empty-cart,
+html[data-theme="dark"] .faq-list p {
+  color: var(--kl-muted) !important;
+}
+
+/* Gold-on-cream text needs lifting for contrast on dark */
+html[data-theme="dark"] .card-title,
+html[data-theme="dark"] .type,
+html[data-theme="dark"] .line-price,
+html[data-theme="dark"] .formats small,
+html[data-theme="dark"] .detail small,
+html[data-theme="dark"] .price-card small,
+html[data-theme="dark"] .kicker {
+  color: var(--kl-gold-soft) !important;
+}
+
+html[data-theme="dark"] .card-price,
+html[data-theme="dark"] .price-card b {
+  color: var(--kl-text) !important;
+}
+
+/* Form controls */
+html[data-theme="dark"] .field input,
+html[data-theme="dark"] .field select,
+html[data-theme="dark"] .field textarea,
+html[data-theme="dark"] .search,
+html[data-theme="dark"] .qty input,
+html[data-theme="dark"] .item-controls select,
+html[data-theme="dark"] .item-controls input {
+  background: var(--kl-input) !important;
+  border-color: var(--kl-line) !important;
+  color: var(--kl-text) !important;
+}
+
+html[data-theme="dark"] .field input::placeholder,
+html[data-theme="dark"] .search::placeholder,
+html[data-theme="dark"] .field textarea::placeholder {
+  color: var(--kl-muted) !important;
+  opacity: .7;
+}
+
+/* Buttons that were cream-on-light */
+html[data-theme="dark"] .btn.secondary,
+html[data-theme="dark"] .remove-btn,
+html[data-theme="dark"] .filter-btn {
+  background: var(--kl-surface-2) !important;
+  border-color: var(--kl-line) !important;
+  color: var(--kl-gold-soft) !important;
+}
+
+html[data-theme="dark"] .filter-btn.active {
+  background: linear-gradient(135deg, #fff0a8, #d4af37) !important;
+  color: #080604 !important;
+  border-color: transparent !important;
+}
+
+html[data-theme="dark"] .option.active {
+  background: linear-gradient(135deg, #fff0a8, #d4af37) !important;
+  color: #080604 !important;
+}
+
+/* The sticky filter bar is translucent cream by default */
+html[data-theme="dark"] .filters {
+  background: rgba(20, 19, 15, .92) !important;
+  border-color: var(--kl-line) !important;
+}
+
+/* Availability and status pills */
+html[data-theme="dark"] .badge {
+  background: rgba(212, 175, 55, .14) !important;
+  border-color: rgba(212, 175, 55, .32) !important;
+  color: var(--kl-gold-soft) !important;
+}
+
+/* The order summary rail is already dark; keep its text readable */
+html[data-theme="dark"] .summary .mini-item {
+  background: rgba(255, 247, 223, .05) !important;
+  border-color: rgba(255, 247, 223, .14) !important;
+  color: var(--kl-text) !important;
+}
+
+html[data-theme="dark"] .summary .mini-item span {
+  color: rgba(255, 247, 223, .66) !important;
+}
+
+/* Trust band and other tinted section backgrounds */
+html[data-theme="dark"] .trust,
+html[data-theme="dark"] .band,
+html[data-theme="dark"] section.alt {
+  background: #100f0c !important;
+  border-color: var(--kl-line) !important;
+}
+
+/* Auth messages keep their semantic colour but need darker beds */
+html[data-theme="dark"] .auth-message.error {
+  background: rgba(229, 83, 75, .12) !important;
+  border-color: rgba(229, 83, 75, .42) !important;
+  color: #ef8078 !important;
+}
+
+html[data-theme="dark"] .auth-message.success {
+  background: rgba(123, 162, 79, .14) !important;
+  border-color: rgba(123, 162, 79, .42) !important;
+  color: #a7cc7d !important;
+}
+
+/* Tab underline on the sign-in / create-account switcher */
+html[data-theme="dark"] .auth-tabs {
+  border-bottom-color: var(--kl-line) !important;
+}
+html[data-theme="dark"] .auth-tab {
+  color: var(--kl-muted) !important;
+}
+html[data-theme="dark"] .auth-tab.active {
+  color: var(--kl-text) !important;
+}
+
+/* Wishlist hearts sit on the vial image */
+html[data-theme="dark"] .wishlist-heart {
+  background: rgba(30, 28, 23, .92) !important;
+  border-color: rgba(212, 175, 55, .34) !important;
+}

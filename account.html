@@ -83,6 +83,7 @@
 .auth-form.active{display:block}
 
 </style>  <link rel="stylesheet" href="assets/compliance-gate.css">
+<link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
 </head><body><div class="hero"><header class="wrap topbar"><a class="brand" href="index.html"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></a><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="supply-categories.html">Shop</a><a href="index.html#about">About</a><a href="index.html#wholesale">Wholesale</a><a href="mailto:hello@knightlabs.example">Contact</a><a class="account-link" href="account.html">Sign In</a><a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a><a class="nav-cta" href="supply-categories.html">Shop Products</a></nav></header><div class="wrap hero-inner"><div><div class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>Account</span></div><div class="kicker">Account</div><h1>Sign in.</h1><p class="lead">Create an account for order updates, restock notifications, product update alerts, and saved checkout details.</p></div></div></div><section><div class="wrap account-layout"><div class="account-panel"><div class="section-head"><div><div class="kicker" style="color:#967016">Customer Account</div><h2 class="title">Access your account.</h2><p>Sign in or create a local account. Passwords are hashed and salted on the server — never stored in plain text.</p></div></div>
 
 <!-- Auth Tabs -->
@@ -105,6 +106,7 @@
   </div>
   <p id="signInMessage" class="auth-message" role="status" aria-live="polite" hidden></p>
   <button class="btn primary" type="button" id="signInBtn" style="width:100%;margin-top:20px">Sign In</button>
+  <p style="margin-top:14px;text-align:center"><button type="button" id="forgotPasswordBtn" style="background:none;border:0;padding:0;font:inherit;font-weight:800;font-size:14px;color:#8c6713;text-decoration:underline;cursor:pointer">Forgot your password?</button></p>
 </div>
 
 <!-- Create Account Form -->
@@ -233,6 +235,8 @@ document.addEventListener('DOMContentLoaded',function(){
         }
         // Store logged in state
         localStorage.setItem('knightLabsLoggedIn',JSON.stringify({email:email}));
+        // Adopt this account's saved light/dark preference immediately.
+        if(window.KnightTheme)window.KnightTheme.refresh();
         showMessage('Signed in successfully. Redirecting...','success',signInMessage);
         setTimeout(function(){
           window.location.href='supply-categories.html';
@@ -279,6 +283,11 @@ document.addEventListener('DOMContentLoaded',function(){
         }
         // Store logged in state after account creation
         localStorage.setItem('knightLabsLoggedIn',JSON.stringify({email:email}));
+        // Recorded once so the dashboard can show "Member since".
+        if(!localStorage.getItem('knightLabsMemberSince_'+email)){
+          localStorage.setItem('knightLabsMemberSince_'+email,new Date().toISOString());
+        }
+        if(window.KnightTheme)window.KnightTheme.refresh();
         showMessage('Account created! Logging you in...','success',signUpMessage);
         setTimeout(function(){
           window.location.href='supply-categories.html';
@@ -291,6 +300,40 @@ document.addEventListener('DOMContentLoaded',function(){
     }).catch(function(){
       showMessage('Could not reach the server. Start it with: python server.py','error',signUpMessage);
     }).finally(function(){setLoading(false,createAccountBtn);});
+  }
+
+  // Forgot password — email a reset link to the address in the sign-in field
+  var forgotBtn=document.getElementById('forgotPasswordBtn');
+  if(forgotBtn){
+    forgotBtn.addEventListener('click',function(){
+      var email=signInEmail.value.trim();
+      if(!email){
+        showMessage('Enter your email above, then click "Forgot your password?" again.','error',signInMessage);
+        signInEmail.focus();
+        return;
+      }
+      if(!EMAIL_RE.test(email)){
+        showMessage('Invalid email format.','error',signInMessage);
+        return;
+      }
+      forgotBtn.disabled=true;
+      callApi('/api/request-password-reset',{email:email}).then(function(result){
+        if(result.data.ok){
+          // Deliberately the same response whether or not the account exists.
+          if(result.data.delivery==='smtp'){
+            showMessage('If an account exists for '+email+', a reset link is on its way. It expires in 1 hour.','success',signInMessage);
+          }else{
+            showMessage('Email is not configured on this server. If an account exists for '+email+', the reset link was printed in the server console and saved to outbox\\.','success',signInMessage);
+          }
+        }else if(result.data.code==='throttled'){
+          showMessage('A reset link was just sent. Wait a minute before requesting another.','error',signInMessage);
+        }else{
+          showMessage('Could not send the reset email. Please try again.','error',signInMessage);
+        }
+      }).catch(function(){
+        showMessage('Could not reach the server. Start it with: python server.py','error',signInMessage);
+      }).finally(function(){forgotBtn.disabled=false;});
+    });
   }
 
   signInBtn.addEventListener('click',handleSignIn);
