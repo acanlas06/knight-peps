@@ -1,0 +1,427 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Knight Labs — Account Dashboard</title><meta name="description" content="Manage your Knight Labs account."><link rel="icon" type="image/png" href="assets/knight-labs-crest-icon-transparent.png"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
+*{box-sizing:border-box;margin:0;padding:0}:root{--black:#030303;--night:#080805;--gold:#d4af37;--gold2:#fff0a8;--gold3:#8c6713;--cream:#fff7df;--paper:#f5efe5;--ink:#11100b;--muted:#716958;--line:#dac89a;--shadow:0 28px 80px rgba(20,15,3,.14);--radius:26px;--light-bg:#ffffff;--light-sidebar:#f8f7f5;--dark-bg:#0a0907;--dark-sidebar:#111010}html{scroll-behavior:smooth}body{font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);line-height:1.42;-webkit-font-smoothing:antialiased;display:grid;grid-template-columns:240px 1fr;min-height:100vh}body.dark-mode{--paper:#0a0907;--ink:#f5efe5;--muted:#b8b0a8;--line:#3d3a35}.sidebar{background:var(--light-sidebar);border-right:1px solid var(--line);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}.sidebar.dark-mode{background:var(--dark-sidebar)}.sidebar-logo{display:flex;align-items:center;gap:12px;padding:0 18px 24px;font-weight:950;border-bottom:1px solid var(--line);margin-bottom:24px;transition:.2s}.sidebar-logo:hover{opacity:.8;transform:translateX(-2px)}.sidebar-logo img{width:40px;height:40px}.sidebar-nav{display:flex;flex-direction:column;gap:0;height:100%}.sidebar-link{display:flex;align-items:center;gap:12px;padding:14px 18px;color:var(--ink);text-decoration:none;border-left:3px solid transparent;transition:.2s}.sidebar-link:hover{background:rgba(212,175,55,.08);color:var(--gold3)}.sidebar-link.active{border-left-color:var(--gold);background:rgba(212,175,55,.12);color:var(--gold3);font-weight:700}.sidebar-link.logout{color:#d32f2f}.sidebar-link.logout:hover{background:rgba(211,47,47,.08)}.main-content{background:var(--paper);padding:0}.header-bar{background:linear-gradient(135deg,#1565c0,#1976d2);color:white;padding:18px 32px;border-bottom:1px solid rgba(0,0,0,.1)}.header-bar p{font-size:15px;line-height:1.5;max-width:1000px}.dashboard-content{padding:32px}.notification{background:#1565c0;color:white;padding:18px 24px;border-radius:8px;margin-bottom:28px;font-size:14px}.welcome-section{margin-bottom:32px}.greeting{font-size:18px;color:var(--ink);margin-bottom:8px}.greeting a{color:var(--gold);text-decoration:none}.greeting a:hover{text-decoration:underline}.description{color:var(--muted);font-size:15px;line-height:1.6;max-width:800px}.description a{color:var(--gold);text-decoration:none}.description a:hover{text-decoration:underline}.display-section{padding:14px 18px;border-top:1px solid var(--line);margin-top:auto}.display-label{font-size:12px;font-weight:950;text-transform:uppercase;color:var(--muted);letter-spacing:.1em;display:block;margin-bottom:12px}.theme-toggle{width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:10px 14px;font-weight:950;cursor:pointer;font-size:14px;color:#080604;box-shadow:0 4px 12px rgba(212,175,55,.16);transition:.2s}.theme-toggle:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(212,175,55,.22)}.address-form{border:1px solid var(--line);border-radius:12px;padding:24px;background:var(--light-sidebar);margin-bottom:24px}.address-form.dark-mode{background:var(--dark-sidebar)}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.form-row.full{grid-template-columns:1fr}.form-group{display:flex;flex-direction:column}.form-group label{font-weight:700;margin-bottom:8px;font-size:14px}.form-group input{border:1px solid var(--line);border-radius:8px;padding:12px;font:inherit;background:var(--light-bg)}.form-group input.dark-mode{background:var(--dark-sidebar)}.form-group.dark-mode input{background:var(--dark-sidebar);border-color:#3d3a35}.form-actions{display:flex;gap:12px;margin-top:20px}.btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:12px 24px;font-weight:950;cursor:pointer;color:#080604}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(212,175,55,.22)}.btn-secondary{background:transparent;border:1px solid var(--line);border-radius:8px;padding:12px 24px;font-weight:700;cursor:pointer;color:var(--ink)}.btn-secondary:hover{background:rgba(212,175,55,.08)}.addresses-list{display:grid;gap:16px}.address-card{border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--light-sidebar)}.address-card.dark-mode{background:var(--dark-sidebar)}.address-card h3{margin-bottom:12px;font-size:16px}.address-card p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px}.address-card-actions{display:flex;gap:10px;margin-top:16px}.btn-small{background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)}.btn-small:hover{background:rgba(212,175,55,.08)}.btn-small.danger{color:#d32f2f;border-color:#d32f2f}.btn-small.danger:hover{background:rgba(211,47,47,.08)}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
+</style>
+</head><body>
+
+<aside class="sidebar" id="sidebar">
+  <a href="index.html" class="sidebar-logo" style="text-decoration:none;color:inherit;cursor:pointer;">
+    <img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs">
+    <span>Knight Labs</span>
+  </a>
+  <nav class="sidebar-nav">
+    <a href="#dashboard" class="sidebar-link active" data-section="dashboard">
+      <span style="font-size:18px">📊</span> Dashboard
+    </a>
+    <a href="#orders" class="sidebar-link" data-section="orders">
+      <span style="font-size:18px">📦</span> Orders
+    </a>
+    <a href="#downloads" class="sidebar-link" data-section="downloads">
+      <span style="font-size:18px">⬇️</span> Downloads
+    </a>
+    <a href="#addresses" class="sidebar-link" data-section="addresses">
+      <span style="font-size:18px">📍</span> Addresses
+    </a>
+    <a href="#account-details" class="sidebar-link" data-section="account-details">
+      <span style="font-size:18px">👤</span> Account details
+    </a>
+    <a href="#wishlist" class="sidebar-link" data-section="wishlist">
+      <span style="font-size:18px">❤️</span> Wishlist
+    </a>
+
+    <div class="display-section">
+      <span class="display-label">Display</span>
+      <button class="theme-toggle" id="themeToggle">🌙 Dark Mode</button>
+    </div>
+
+    <a href="#logout" class="sidebar-link logout" id="logoutBtn" style="margin-top:auto">
+      <span style="font-size:18px">🚪</span> Log out
+    </a>
+  </nav>
+</aside>
+
+<main class="main-content">
+  <div class="header-bar" id="headerBar">
+    <p>Your account with Knight Labs is active. Manage your orders, addresses, and account settings below.</p>
+  </div>
+
+  <div class="dashboard-content" id="dashboardContent">
+    <!-- Dashboard Section -->
+    <section id="dashboard-section">
+      <div class="notification">
+        📋 Your Knight Labs account is active and ready to use.
+      </div>
+
+      <div class="welcome-section">
+        <p class="greeting">Hello <strong id="userEmail">user</strong> (<a href="#logout" id="quickLogout">Log out</a>)</p>
+        <p class="description">From your account dashboard you can view your <a href="#orders">recent orders</a>, manage your <a href="#addresses">shipping and billing addresses</a>, and <a href="#account-details">edit your password and account details</a>.</p>
+      </div>
+    </section>
+
+    <!-- Orders Section -->
+    <section id="orders-section" style="display:none;">
+      <h2 style="margin-bottom:20px">Your Orders</h2>
+      <div id="ordersList" class="addresses-list"></div>
+    </section>
+
+    <!-- Downloads Section -->
+    <section id="downloads-section" style="display:none;">
+      <h2 style="margin-bottom:20px">Downloads</h2>
+      <p class="description">No downloads available yet.</p>
+    </section>
+
+    <!-- Addresses Section -->
+    <section id="addresses-section" style="display:none;">
+      <h2 style="margin-bottom:20px">Shipping & Billing Addresses</h2>
+
+      <!-- Add Address Form -->
+      <div class="address-form" id="addressForm" style="display:none;">
+        <h3 style="margin-bottom:20px">Add New Address</h3>
+        <div class="form-row full">
+          <div class="form-group">
+            <label for="addressName">Full Name</label>
+            <input type="text" id="addressName" placeholder="John Doe">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label for="addressStreet">Street Address</label>
+            <input type="text" id="addressStreet" placeholder="123 Main Street">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addressCity">City</label>
+            <input type="text" id="addressCity" placeholder="City">
+          </div>
+          <div class="form-group">
+            <label for="addressState">State/Province</label>
+            <input type="text" id="addressState" placeholder="State">
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label for="addressZip">Postal Code</label>
+            <input type="text" id="addressZip" placeholder="12345">
+          </div>
+          <div class="form-group">
+            <label for="addressCountry">Country</label>
+            <input type="text" id="addressCountry" placeholder="Country">
+          </div>
+        </div>
+        <div class="form-row full">
+          <div class="form-group">
+            <label for="addressPhone">Phone Number</label>
+            <input type="tel" id="addressPhone" placeholder="(555) 123-4567">
+          </div>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" id="saveAddressBtn">Save Address</button>
+          <button class="btn-secondary" id="cancelAddressBtn">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Addresses List -->
+      <div id="addressesList" class="addresses-list"></div>
+      <button class="btn-primary" id="addAddressBtn" style="margin-top:20px">+ Add Another Address</button>
+    </section>
+
+    <!-- Account Details Section -->
+    <section id="account-details-section" style="display:none;">
+      <h2 style="margin-bottom:20px">Account Details</h2>
+      <div style="max-width:600px">
+        <div style="margin-bottom:24px">
+          <label style="display:block;font-weight:700;margin-bottom:8px">Email Address</label>
+          <input type="email" id="accountEmail" readonly style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--light-sidebar);cursor:not-allowed">
+        </div>
+        <div style="margin-bottom:24px">
+          <label style="display:block;font-weight:700;margin-bottom:8px">Password</label>
+          <a href="#" style="color:var(--gold);text-decoration:none">Change password</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- Wishlist Section -->
+    <section id="wishlist-section" style="display:none;">
+      <h2 style="margin-bottom:20px">Wishlist</h2>
+      <p class="description">Your wishlist is empty. <a href="supply-categories.html">Browse products</a></p>
+    </section>
+  </div>
+</main>
+
+<script>
+const KL_PRODUCTS={"retatrutide": {"name": "Retatrutide","sizes": ["10mg","20mg","30mg"]},"tirzepatide": {"name": "Tirzepatide","sizes": ["10mg","20mg","30mg"]},"semaglutide": {"name": "Semaglutide","sizes": ["5mg","10mg"]},"bpc-157": {"name": "BPC-157","sizes": ["10mg"]},"tb500": {"name": "TB500","sizes": ["10mg"]},"bpc-157-tb500-blend": {"name": "BPC-157 + TB500 Blend","sizes": ["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin": {"name": "CJC-1295 without DAC + Ipamorelin","sizes": ["5mg + 5mg","10mg + 10mg"]},"ipamorelin": {"name": "Ipamorelin","sizes": ["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29": {"name": "CJC-1295 without DAC / Mod GRF 1-29","sizes": ["2mg","5mg"]},"nad": {"name": "NAD+","sizes": ["500mg"]},"glutathione": {"name": "Glutathione","sizes": ["600mg","1200mg"]},"epithalon": {"name": "Epithalon","sizes": ["10mg","50mg"]},"semax": {"name": "Semax","sizes": ["10mg"]},"selank": {"name": "Selank","sizes": ["10mg"]},"ghk-cu": {"name": "GHK-CU","sizes": ["50mg"]}};
+
+document.addEventListener('DOMContentLoaded',function(){
+  var userEmail='';
+  // Check if user is logged in
+  var loggedInData=localStorage.getItem('knightLabsLoggedIn');
+  if(!loggedInData){
+    window.location.href='account.html';
+    return;
+  }
+
+  try{
+    var user=JSON.parse(loggedInData);
+    userEmail=user.email;
+    document.getElementById('userEmail').textContent=user.email;
+    document.getElementById('accountEmail').value=user.email;
+  }catch(e){
+    window.location.href='account.html';
+  }
+
+  // Theme toggle
+  var themeToggle=document.getElementById('themeToggle');
+  var isDarkMode=localStorage.getItem('knightLabsDarkMode')==='true';
+
+  function applyTheme(dark){
+    document.body.classList.toggle('dark-mode',dark);
+    document.querySelector('.sidebar').classList.toggle('dark-mode',dark);
+    document.querySelectorAll('.address-form, .address-card, .form-group input').forEach(el=>el.classList.toggle('dark-mode',dark));
+    themeToggle.textContent=dark?'☀️ Light Mode':'🌙 Dark Mode';
+    localStorage.setItem('knightLabsDarkMode',String(dark));
+  }
+
+  applyTheme(isDarkMode);
+  themeToggle.addEventListener('click',function(){
+    isDarkMode=!isDarkMode;
+    applyTheme(isDarkMode);
+  });
+
+  // Order history
+  function money(n){return '$'+Number(n||0).toLocaleString();}
+  function escapeHTML(v){return String(v==null?'':v).replace(/[&<>"']/g,function(ch){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch];});}
+  function formatOrderDate(iso){
+    var d=new Date(iso);
+    if(isNaN(d.getTime()))return 'Unknown date';
+    return d.toLocaleDateString(undefined,{year:'numeric',month:'long',day:'numeric'})+' at '+d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'});
+  }
+  function getOrders(){
+    if(!userEmail)return [];
+    try{return JSON.parse(localStorage.getItem('knightLabsOrders_'+userEmail)||'[]');}catch(e){return [];}
+  }
+  function renderOrders(){
+    var orders=getOrders();
+    var list=document.getElementById('ordersList');
+    if(!orders.length){
+      list.innerHTML='<p class="description">No orders yet. <a href="supply-categories.html" style="color:var(--gold)">Start shopping</a></p>';
+      return;
+    }
+    list.innerHTML=orders.map(function(order){
+      var items=(order.items||[]).map(function(it){
+        var qty=Math.max(1,parseInt(it.qty,10)||1);
+        return '<div style="display:flex;justify-content:space-between;gap:16px;padding:10px 0;border-top:1px solid var(--line)"><span style="font-size:14px"><b>'+escapeHTML(it.name)+'</b><br><span style="color:var(--muted);font-size:13px">'+escapeHTML(it.size)+' · Qty '+qty+'</span></span><span style="font-size:14px;font-weight:700;white-space:nowrap">'+money(it.lineTotal)+'</span></div>';
+      }).join('');
+      var addr=order.shippingAddress;
+      var addrBlock=addr?'<p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6"><b style="color:var(--ink)">Ship to:</b> '+escapeHTML(addr.name)+', '+escapeHTML(addr.street)+', '+escapeHTML(addr.city)+', '+escapeHTML(addr.state)+' '+escapeHTML(addr.zip)+', '+escapeHTML(addr.country)+'</p>':'';
+      return '<div class="address-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--light-sidebar)">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px">'
+        +'<h3 style="font-size:16px">Order '+escapeHTML(order.orderNumber)+'</h3>'
+        +'<span style="font-size:13px;color:var(--muted)">'+escapeHTML(formatOrderDate(order.placedAt))+'</span></div>'
+        +'<p style="color:var(--muted);font-size:13px;margin-bottom:12px">'+(order.itemCount||0)+' item'+((order.itemCount||0)===1?'':'s')+' · '+escapeHTML(order.shippingMethod||'Coordinate directly')+'</p>'
+        +items
+        +'<div style="display:flex;justify-content:space-between;gap:16px;padding-top:12px;margin-top:4px;border-top:2px solid var(--line)"><b>Total</b><b>'+money(order.total)+'</b></div>'
+        +addrBlock
+        +'</div>';
+    }).join('');
+  }
+
+  // Address management functions
+  function getAddresses(){
+    if(!userEmail)return [];
+    try{
+      return JSON.parse(localStorage.getItem('knightLabsAddresses_'+userEmail)||'[]');
+    }catch(e){
+      return [];
+    }
+  }
+  function saveAddresses(addresses){
+    if(!userEmail)return;
+    localStorage.setItem('knightLabsAddresses_'+userEmail,JSON.stringify(addresses));
+  }
+  function renderAddresses(){
+    var addresses=getAddresses();
+    var list=document.getElementById('addressesList');
+    if(addresses.length===0){
+      list.innerHTML='<p class="description">No addresses saved yet.</p>';
+      return;
+    }
+    list.innerHTML=addresses.map(function(addr,idx){
+      var isPrimary=!!addr.isPrimary;
+      var badge=isPrimary?'<span style="display:inline-block;margin-left:10px;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#080604;font-size:11px;font-weight:950;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle">Primary</span>':'';
+      var primaryBtn=isPrimary?'':'<button class="btn-small" data-primary="'+idx+'" style="background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)">Make Primary</button>';
+      var cardBorder=isPrimary?'2px solid var(--gold)':'1px solid var(--line)';
+      return '<div class="address-card" style="border:'+cardBorder+';border-radius:12px;padding:20px;background:var(--light-sidebar);"><h3 style="margin-bottom:12px;font-size:16px">'+addr.name+badge+'</h3><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.street+'</p><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.city+', '+addr.state+' '+addr.zip+'</p><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.country+'</p><p style="margin-top:8px;font-size:13px;color:var(--muted)">'+addr.phone+'</p><div class="address-card-actions" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+primaryBtn+'<button class="btn-small" data-edit="'+idx+'" style="background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)">Edit</button><button class="btn-small danger" data-remove="'+idx+'" style="background:transparent;border:1px solid #d32f2f;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:#d32f2f">Remove</button></div></div>';
+    }).join('');
+    // Make primary
+    document.querySelectorAll('[data-primary]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.dataset.primary,10);
+        var addresses=getAddresses();
+        addresses.forEach(function(a,i){a.isPrimary=(i===idx);});
+        saveAddresses(addresses);
+        renderAddresses();
+      });
+    });
+    // Add event listeners
+    document.querySelectorAll('[data-remove]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.dataset.remove,10);
+        var addresses=getAddresses();
+        addresses.splice(idx,1);
+        // If the primary was removed, promote the first remaining address
+        if(addresses.length&&!addresses.some(function(a){return a.isPrimary;})){
+          addresses[0].isPrimary=true;
+        }
+        saveAddresses(addresses);
+        renderAddresses();
+      });
+    });
+    document.querySelectorAll('[data-edit]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var idx=parseInt(this.dataset.edit,10);
+        var addresses=getAddresses();
+        var addr=addresses[idx];
+        document.getElementById('addressName').value=addr.name;
+        document.getElementById('addressStreet').value=addr.street;
+        document.getElementById('addressCity').value=addr.city;
+        document.getElementById('addressState').value=addr.state;
+        document.getElementById('addressZip').value=addr.zip;
+        document.getElementById('addressCountry').value=addr.country;
+        document.getElementById('addressPhone').value=addr.phone;
+        document.getElementById('saveAddressBtn').textContent='Update Address';
+        document.getElementById('saveAddressBtn').dataset.editIdx=idx;
+        document.getElementById('addressForm').style.display='block';
+        document.getElementById('addAddressBtn').style.display='none';
+        document.getElementById('addressForm').scrollIntoView({behavior:'smooth'});
+      });
+    });
+  }
+
+  // Address form handlers
+  document.getElementById('saveAddressBtn').addEventListener('click',function(){
+    var name=document.getElementById('addressName').value.trim();
+    var street=document.getElementById('addressStreet').value.trim();
+    var city=document.getElementById('addressCity').value.trim();
+    var state=document.getElementById('addressState').value.trim();
+    var zip=document.getElementById('addressZip').value.trim();
+    var country=document.getElementById('addressCountry').value.trim();
+    var phone=document.getElementById('addressPhone').value.trim();
+    if(!name||!street||!city||!state||!zip||!country){
+      alert('Please fill in all required fields.');
+      return;
+    }
+    var addresses=getAddresses();
+    var editIdx=parseInt(this.dataset.editIdx,10);
+    if(!isNaN(editIdx)){
+      var wasPrimary=!!addresses[editIdx].isPrimary;
+      addresses[editIdx]={name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:wasPrimary};
+      delete this.dataset.editIdx;
+      this.textContent='Save Address';
+    }else{
+      // First address added becomes primary automatically
+      var makePrimary=addresses.length===0;
+      addresses.push({name:name,street:street,city:city,state:state,zip:zip,country:country,phone:phone,isPrimary:makePrimary});
+    }
+    // Guarantee exactly one primary
+    if(addresses.length&&!addresses.some(function(a){return a.isPrimary;})){
+      addresses[0].isPrimary=true;
+    }
+    saveAddresses(addresses);
+    document.getElementById('addressName').value='';
+    document.getElementById('addressStreet').value='';
+    document.getElementById('addressCity').value='';
+    document.getElementById('addressState').value='';
+    document.getElementById('addressZip').value='';
+    document.getElementById('addressCountry').value='';
+    document.getElementById('addressPhone').value='';
+    renderAddresses();
+    document.getElementById('addressForm').style.display='none';
+    document.getElementById('addAddressBtn').style.display='block';
+  });
+
+  document.getElementById('cancelAddressBtn').addEventListener('click',function(){
+    document.getElementById('addressName').value='';
+    document.getElementById('addressStreet').value='';
+    document.getElementById('addressCity').value='';
+    document.getElementById('addressState').value='';
+    document.getElementById('addressZip').value='';
+    document.getElementById('addressCountry').value='';
+    document.getElementById('addressPhone').value='';
+    document.getElementById('addressForm').style.display='none';
+    document.getElementById('addAddressBtn').style.display='block';
+  });
+
+  document.getElementById('addAddressBtn').addEventListener('click',function(){
+    document.getElementById('addressForm').style.display='block';
+    this.style.display='none';
+  });
+
+  // Sidebar navigation
+  var sidebarLinks=document.querySelectorAll('.sidebar-link');
+  sidebarLinks.forEach(function(link){
+    link.addEventListener('click',function(e){
+      if(this.id==='logoutBtn'){
+        e.preventDefault();
+        handleLogout();
+        return;
+      }
+      var section=this.dataset.section;
+      if(!section)return;
+      e.preventDefault();
+
+      // Hide all sections
+      document.querySelectorAll('#dashboardContent > section').forEach(s=>s.style.display='none');
+      // Show selected section
+      document.getElementById(section+'-section').style.display='block';
+      // Update active link
+      sidebarLinks.forEach(l=>l.classList.remove('active'));
+      this.classList.add('active');
+
+      // Render section data on demand
+      if(section==='addresses'){
+        renderAddresses();
+      }else if(section==='orders'){
+        renderOrders();
+      }
+    });
+  });
+
+  // In-content links that jump to a sidebar section
+  document.querySelectorAll('#dashboardContent a[href^="#"]').forEach(function(link){
+    var target=link.getAttribute('href').slice(1);
+    if(target==='logout'||!document.getElementById(target+'-section'))return;
+    link.addEventListener('click',function(e){
+      e.preventDefault();
+      var tab=document.querySelector('.sidebar-link[data-section="'+target+'"]');
+      if(tab)tab.click();
+    });
+  });
+
+  // Quick logout link
+  document.getElementById('quickLogout').addEventListener('click',function(e){
+    e.preventDefault();
+    handleLogout();
+  });
+
+  function handleLogout(){
+    // Save current cart to logged-in user before logout
+    var loggedInData=localStorage.getItem('knightLabsLoggedIn');
+    if(loggedInData){
+      try{
+        var user=JSON.parse(loggedInData);
+        var currentCart=readCart();
+        if(currentCart.length>0){
+          localStorage.setItem('knightLabsCart_'+user.email,JSON.stringify(currentCart));
+        }
+      }catch(e){}
+    }
+    // Clear general cart and logged in state
+    localStorage.removeItem('knightLabsCart');
+    localStorage.removeItem('knightLabsLoggedIn');
+    window.location.href='account.html';
+  }
+
+  function readCart(){try{return JSON.parse(localStorage.getItem('knightLabsCart')||'[]')}catch(e){return []}}
+});
+</script>
+</body></html>

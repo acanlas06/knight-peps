@@ -205,6 +205,18 @@
     }
     document.addEventListener('DOMContentLoaded',()=>{
       updateCartCount();
+      // Update account link based on login state
+      var accountLink=document.querySelector('.account-link');
+      var loggedInData=localStorage.getItem('knightLabsLoggedIn');
+      if(loggedInData){
+        try{
+          var user=JSON.parse(loggedInData);
+          if(accountLink){
+            accountLink.textContent='Account';
+            accountLink.href='account-dashboard.html';
+          }
+        }catch(e){}
+      }
       document.querySelectorAll('.filter-btn').forEach(btn=>btn.addEventListener('click',()=>filterCatalog(btn.dataset.filter)));
     });
   </script>

@@ -69,8 +69,67 @@
 .product-info:after{display:none!important}
 @media(max-width:680px){.card,.supply-card,.category{padding-top:52px!important}.card:before,.supply-card:before,.category:before{height:34px;padding:0 18px;font-size:9px}}
 
+.auth-message{margin-top:16px;font-weight:900;padding:13px 16px;border-radius:14px;font-size:14px}
+.auth-message.error{color:#b3261e;background:#fdeceb;border:1px solid #f2c6c2}
+.auth-message.success{color:#3f6b1f;background:#eef5e2;border:1px solid #cfe3b1}
+.btn[disabled]{opacity:.6;cursor:default;transform:none!important}
+
+/* Tabbed auth interface */
+.auth-tabs{display:flex;gap:24px;border-bottom:2px solid #dac89a;margin-bottom:32px}
+.auth-tab{cursor:pointer;padding:0 0 12px 0;font-size:18px;font-weight:900;color:#716958;border:none;background:none;position:relative;transition:.2s}
+.auth-tab.active{color:#11100b}
+.auth-tab.active:after{content:"";position:absolute;bottom:-2px;left:0;right:0;height:2px;background:#ff6b35}
+.auth-form{display:none}
+.auth-form.active{display:block}
+
 </style>  <link rel="stylesheet" href="assets/compliance-gate.css">
-</head><body><div class="hero"><header class="wrap topbar"><a class="brand" href="index.html"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></a><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="supply-categories.html">Shop</a><a href="index.html#about">About</a><a href="index.html#wholesale">Wholesale</a><a href="mailto:hello@knightlabs.example">Contact</a><a class="account-link" href="account.html">Sign In</a><a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a><a class="nav-cta" href="supply-categories.html">Shop Products</a></nav></header><div class="wrap hero-inner"><div><div class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>Account</span></div><div class="kicker">Account</div><h1>Sign in.</h1><p class="lead">Create an account for order updates, restock notifications, product update alerts, and saved checkout details.</p></div></div></div><section><div class="wrap account-layout"><div class="account-panel"><div class="section-head"><div><div class="kicker" style="color:#967016">Customer Account</div><h2 class="title">Access your account.</h2><p>Account access will connect after the final backend is chosen.</p></div></div><div class="form-grid"><div class="field"><label>Email</label><input type="email" placeholder="you@example.com"></div><div class="field"><label>Password</label><input type="password" placeholder="••••••••"></div></div><div class="card-actions"><button class="btn primary">Sign In</button><button class="btn secondary">Create Account</button></div></div><aside class="summary"><div class="kicker">Notifications</div><h2 style="font-size:34px;letter-spacing:-.05em">Account benefits</h2><p>Optional notifications can support product availability, order status, product updates and order updates.</p><div class="checkline"><input type="checkbox" checked><span>Email me order and shipping updates.</span></div><div class="checkline"><input type="checkbox"><span>Notify me when selected products are back in stock.</span></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
+</head><body><div class="hero"><header class="wrap topbar"><a class="brand" href="index.html"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></a><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="supply-categories.html">Shop</a><a href="index.html#about">About</a><a href="index.html#wholesale">Wholesale</a><a href="mailto:hello@knightlabs.example">Contact</a><a class="account-link" href="account.html">Sign In</a><a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a><a class="nav-cta" href="supply-categories.html">Shop Products</a></nav></header><div class="wrap hero-inner"><div><div class="breadcrumb"><a href="index.html">Home</a><span>/</span><span>Account</span></div><div class="kicker">Account</div><h1>Sign in.</h1><p class="lead">Create an account for order updates, restock notifications, product update alerts, and saved checkout details.</p></div></div></div><section><div class="wrap account-layout"><div class="account-panel"><div class="section-head"><div><div class="kicker" style="color:#967016">Customer Account</div><h2 class="title">Access your account.</h2><p>Sign in or create a local account. Passwords are hashed and salted on the server — never stored in plain text.</p></div></div>
+
+<!-- Auth Tabs -->
+<div class="auth-tabs">
+  <button class="auth-tab active" data-tab="signin">Log In</button>
+  <button class="auth-tab" data-tab="signup">Create Account</button>
+</div>
+
+<!-- Sign In Form -->
+<div class="auth-form active" data-form="signin">
+  <div class="form-grid">
+    <div class="field" style="grid-column: 1/-1">
+      <label for="signInEmail">Email</label>
+      <input type="email" id="signInEmail" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field" style="grid-column: 1/-1">
+      <label for="signInPassword">Password</label>
+      <input type="password" id="signInPassword" placeholder="••••••••" autocomplete="current-password">
+    </div>
+  </div>
+  <p id="signInMessage" class="auth-message" role="status" aria-live="polite" hidden></p>
+  <button class="btn primary" type="button" id="signInBtn" style="width:100%;margin-top:20px">Sign In</button>
+</div>
+
+<!-- Create Account Form -->
+<div class="auth-form" data-form="signup">
+  <div class="form-grid">
+    <div class="field">
+      <label for="signUpFirstName">First Name</label>
+      <input type="text" id="signUpFirstName" placeholder="First Name">
+    </div>
+    <div class="field">
+      <label for="signUpLastName">Last Name</label>
+      <input type="text" id="signUpLastName" placeholder="Last Name">
+    </div>
+    <div class="field" style="grid-column: 1/-1">
+      <label for="signUpEmail">Email</label>
+      <input type="email" id="signUpEmail" placeholder="you@example.com" autocomplete="email">
+    </div>
+    <div class="field" style="grid-column: 1/-1">
+      <label for="signUpPassword">Password</label>
+      <input type="password" id="signUpPassword" placeholder="••••••••" autocomplete="new-password">
+    </div>
+  </div>
+  <p id="signUpMessage" class="auth-message" role="status" aria-live="polite" hidden></p>
+  <button class="btn primary" type="button" id="createAccountBtn" style="width:100%;margin-top:20px">Create Account</button>
+</div></div><aside class="summary"><div class="kicker">Notifications</div><h2 style="font-size:34px;letter-spacing:-.05em">Account benefits</h2><div style="margin-top:24px;display:grid;gap:16px"><div><h3 style="font-size:16px;font-weight:900;margin-bottom:6px">📦 Order Tracking</h3><p style="color:rgba(255,247,223,.64);font-size:14px">Real-time updates on your orders, shipments, and delivery status.</p></div><div><h3 style="font-size:16px;font-weight:900;margin-bottom:6px">💾 Saved Cart</h3><p style="color:rgba(255,247,223,.64);font-size:14px">Your cart items are saved automatically when you log in.</p></div><div><h3 style="font-size:16px;font-weight:900;margin-bottom:6px">⭐ Wishlist</h3><p style="color:rgba(255,247,223,.64);font-size:14px">Save your favorite products for easy access later.</p></div><div><h3 style="font-size:16px;font-weight:900;margin-bottom:6px">🔔 Restock Alerts</h3><p style="color:rgba(255,247,223,.64);font-size:14px">Get notified when out-of-stock items are back in inventory.</p></div></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
 <script>
 const KL_PRODUCTS={"retatrutide": {"name": "Retatrutide","sizes": ["10mg","20mg","30mg"]},"tirzepatide": {"name": "Tirzepatide","sizes": ["10mg","20mg","30mg"]},"semaglutide": {"name": "Semaglutide","sizes": ["5mg","10mg"]},"bpc-157": {"name": "BPC-157","sizes": ["10mg"]},"tb500": {"name": "TB500","sizes": ["10mg"]},"bpc-157-tb500-blend": {"name": "BPC-157 + TB500 Blend","sizes": ["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin": {"name": "CJC-1295 without DAC + Ipamorelin","sizes": ["5mg + 5mg","10mg + 10mg"]},"ipamorelin": {"name": "Ipamorelin","sizes": ["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29": {"name": "CJC-1295 without DAC / Mod GRF 1-29","sizes": ["2mg","5mg"]},"nad": {"name": "NAD+","sizes": ["500mg"]},"glutathione": {"name": "Glutathione","sizes": ["600mg","1200mg"]},"epithalon": {"name": "Epithalon","sizes": ["10mg","50mg"]},"semax": {"name": "Semax","sizes": ["10mg"]},"selank": {"name": "Selank","sizes": ["10mg"]},"ghk-cu": {"name": "GHK-CU","sizes": ["50mg"]}};
 const KL_PRICES={"retatrutide": {"10mg": 75,"20mg": 140,"30mg": 180},"tirzepatide": {"10mg": 60,"20mg": 80,"30mg": 100},"semaglutide": {"5mg": 35,"10mg": 50},"bpc-157": {"10mg": 45},"tb500": {"10mg": 50},"bpc-157-tb500-blend": {"5mg + 5mg": 89,"10mg + 10mg": 149},"cjc-1295-without-dac-ipamorelin": {"5mg + 5mg": 99,"10mg + 10mg": 169},"ipamorelin": {"5mg": 49,"10mg": 79},"cjc-1295-without-dac-mod-grf-1-29": {"2mg": 45,"5mg": 79},"nad": {"500mg": 55},"glutathione": {"600mg": 69,"1200mg": 119},"epithalon": {"10mg": 59,"50mg": 199},"semax": {"10mg": 45},"selank": {"10mg": 45},"ghk-cu": {"50mg": 40}};
@@ -80,7 +139,169 @@ function cartTotalQty(){return readCart().reduce((n,i)=>n+(parseInt(i.qty,10)||0
 function updateCartCount(){document.querySelectorAll('[data-cart-count]').forEach(el=>el.textContent=cartTotalQty())}
 function money(n){return '$'+Number(n||0).toLocaleString();}
 function itemPrice(item){return KL_PRICES[item.slug]?.[item.size]||0}
-document.addEventListener('DOMContentLoaded',updateCartCount);
+document.addEventListener('DOMContentLoaded',function(){
+  updateCartCount();
+  // Update account link based on login state
+  var accountLink=document.querySelector('.account-link');
+  var loggedInData=localStorage.getItem('knightLabsLoggedIn');
+  if(loggedInData){
+    try{
+      var user=JSON.parse(loggedInData);
+      if(accountLink){
+        accountLink.textContent='Account';
+        accountLink.href='account-dashboard.html';
+      }
+    }catch(e){}
+  }
+});
+</script>
+<script>
+(function(){
+  // Email validation regex
+  var EMAIL_RE=/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // DOM elements
+  var tabs=document.querySelectorAll('.auth-tab');
+  var forms=document.querySelectorAll('.auth-form');
+  var signInEmail=document.getElementById('signInEmail');
+  var signInPassword=document.getElementById('signInPassword');
+  var signInMessage=document.getElementById('signInMessage');
+  var signInBtn=document.getElementById('signInBtn');
+  var signUpFirstName=document.getElementById('signUpFirstName');
+  var signUpLastName=document.getElementById('signUpLastName');
+  var signUpEmail=document.getElementById('signUpEmail');
+  var signUpPassword=document.getElementById('signUpPassword');
+  var signUpMessage=document.getElementById('signUpMessage');
+  var createAccountBtn=document.getElementById('createAccountBtn');
+
+  if(!tabs.length||!forms.length)return;
+
+  // Tab switching
+  tabs.forEach(function(tab){
+    tab.addEventListener('click',function(){
+      var tabName=this.dataset.tab;
+      tabs.forEach(function(t){t.classList.remove('active');});
+      forms.forEach(function(f){f.classList.remove('active');});
+      tab.classList.add('active');
+      document.querySelector('.auth-form[data-form="'+tabName+'"]').classList.add('active');
+    });
+  });
+
+
+  function showMessage(text,kind,messageEl){
+    messageEl.textContent=text;
+    messageEl.className='auth-message '+kind;
+    messageEl.hidden=false;
+  }
+
+  function setLoading(isLoading,btn){
+    btn.disabled=isLoading;
+  }
+
+  function callApi(path,data){
+    return fetch(path,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(data)
+    }).then(function(res){
+      return res.json().catch(function(){return {};}).then(function(data){
+        return {status:res.status,data:data||{}};
+      });
+    });
+  }
+
+  function handleSignIn(){
+    var email=signInEmail.value.trim();
+    var password=signInPassword.value;
+    if(!email||!password){showMessage('Enter your email and password.','error',signInMessage);return;}
+    if(!EMAIL_RE.test(email)){showMessage('Invalid email format.','error',signInMessage);return;}
+    setLoading(true,signInBtn);
+    callApi('/api/signin',{email:email,password:password}).then(function(result){
+      var data=result.data;
+      if(data.ok){
+        // Save current cart to user's saved cart
+        var currentCart=readCart();
+        if(currentCart.length>0){
+          localStorage.setItem('knightLabsCart_'+email,JSON.stringify(currentCart));
+        }
+        // Restore user's saved cart if it exists
+        var userCart=localStorage.getItem('knightLabsCart_'+email);
+        if(userCart){
+          localStorage.setItem('knightLabsCart',userCart);
+        }else{
+          localStorage.removeItem('knightLabsCart');
+        }
+        // Store logged in state
+        localStorage.setItem('knightLabsLoggedIn',JSON.stringify({email:email}));
+        showMessage('Signed in successfully. Redirecting...','success',signInMessage);
+        setTimeout(function(){
+          window.location.href='supply-categories.html';
+        },500);
+      }else if(data.code==='no_account'){
+        showMessage('Email not recognized.','error',signInMessage);
+      }else if(data.code==='bad_password'){
+        showMessage('Incorrect password.','error',signInMessage);
+      }else{
+        showMessage('Something went wrong. Please try again.','error',signInMessage);
+      }
+    }).catch(function(){
+      showMessage('Could not reach the server. Start it with: python server.py','error',signInMessage);
+    }).finally(function(){setLoading(false,signInBtn);});
+  }
+
+  function handleCreateAccount(){
+    var firstName=signUpFirstName.value.trim();
+    var lastName=signUpLastName.value.trim();
+    var email=signUpEmail.value.trim();
+    var password=signUpPassword.value;
+
+    if(!firstName||!lastName||!email||!password){
+      showMessage('Fill in all fields to create an account.','error',signUpMessage);
+      return;
+    }
+    if(!EMAIL_RE.test(email)){
+      showMessage('Invalid email format.','error',signUpMessage);
+      return;
+    }
+    if(password.length<6){
+      showMessage('Password must be at least 6 characters.','error',signUpMessage);
+      return;
+    }
+
+    setLoading(true,createAccountBtn);
+    callApi('/api/signup',{email:email,password:password}).then(function(result){
+      var data=result.data;
+      if(data.ok){
+        // Save any current cart to the new user's account
+        var currentCart=readCart();
+        if(currentCart.length>0){
+          localStorage.setItem('knightLabsCart_'+email,JSON.stringify(currentCart));
+        }
+        // Store logged in state after account creation
+        localStorage.setItem('knightLabsLoggedIn',JSON.stringify({email:email}));
+        showMessage('Account created! Logging you in...','success',signUpMessage);
+        setTimeout(function(){
+          window.location.href='supply-categories.html';
+        },500);
+      }else if(result.status===409||data.code==='email_exists'){
+        showMessage('An account with this email already exists.','error',signUpMessage);
+      }else{
+        showMessage('Could not create account. Please try again.','error',signUpMessage);
+      }
+    }).catch(function(){
+      showMessage('Could not reach the server. Start it with: python server.py','error',signUpMessage);
+    }).finally(function(){setLoading(false,createAccountBtn);});
+  }
+
+  signInBtn.addEventListener('click',handleSignIn);
+  createAccountBtn.addEventListener('click',handleCreateAccount);
+
+  // Enter key support
+  signInEmail.addEventListener('keypress',function(e){if(e.key==='Enter')handleSignIn();});
+  signInPassword.addEventListener('keypress',function(e){if(e.key==='Enter')handleSignIn();});
+  signUpEmail.addEventListener('keypress',function(e){if(e.key==='Enter')handleCreateAccount();});
+  signUpPassword.addEventListener('keypress',function(e){if(e.key==='Enter')handleCreateAccount();});
+})();
 </script>
 <a class="floating-cart" href="cart.html" aria-label="View and edit cart">Cart <span class="cart-count" data-cart-count>0</span></a>  <script src="assets/compliance-gate.js" defer></script>
 </body></html>

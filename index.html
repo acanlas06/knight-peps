@@ -42,10 +42,6 @@
   .topbar{padding:14px 0!important;gap:12px!important;align-items:flex-start!important;flex-direction:column!important}
   .brand{font-size:17px!important;gap:10px!important}
   .brand img{width:42px!important;height:42px!important}
-  nav{width:100%!important;display:flex!important;gap:8px!important;overflow-x:auto!important;padding:2px 0 7px!important;-webkit-overflow-scrolling:touch!important;scrollbar-width:none!important;align-items:center!important}
-  nav::-webkit-scrollbar{display:none!important}
-  nav a{flex:0 0 auto!important;white-space:nowrap!important;font-size:13px!important;padding:9px 12px!important;border-radius:999px!important}
-  nav a:not(.nav-cta):not(.account-link):not(.cart-link){background:rgba(255,247,223,.07)!important;border:1px solid rgba(255,247,223,.10)!important}
   .account-link,.cart-link{padding:9px 12px!important}
   .nav-cta{padding:10px 14px!important}
   .cart-count{min-width:19px!important;height:19px!important;font-size:11px!important;margin-left:5px!important}
@@ -74,7 +70,6 @@
 @media (max-width: 520px){
   .wrap{width:min(100% - 20px, 430px)!important}
   .hero-inner{padding:38px 0 46px!important}
-  nav a{font-size:12px!important;padding:8px 10px!important}
   .lead{font-size:15px!important}
   .checkout-panel,.account-panel{padding:18px!important;border-radius:20px!important}
 }
@@ -113,7 +108,21 @@ function writeCart(cart){localStorage.setItem('knightLabsCart',JSON.stringify(ca
 function cartTotalQty(){return readCart().reduce((n,i)=>n+(parseInt(i.qty,10)||0),0)}
 function updateCartCount(){document.querySelectorAll('[data-cart-count]').forEach(el=>el.textContent=cartTotalQty())}
 function addToCart(item){const cart=readCart();const key=item.slug+'|'+item.size;const found=cart.find(i=>i.slug+'|'+i.size===key);if(found){found.qty=(parseInt(found.qty,10)||1)+(parseInt(item.qty,10)||1)}else{cart.push(item)}writeCart(cart)}
-document.addEventListener('DOMContentLoaded',updateCartCount);
+document.addEventListener('DOMContentLoaded',function(){
+  updateCartCount();
+  // Update account link based on login state
+  var accountLink=document.querySelector('.account-link');
+  var loggedInData=localStorage.getItem('knightLabsLoggedIn');
+  if(loggedInData){
+    try{
+      var user=JSON.parse(loggedInData);
+      if(accountLink){
+        accountLink.textContent='Account';
+        accountLink.href='account-dashboard.html';
+      }
+    }catch(e){}
+  }
+});
 </script>
 <a class="floating-cart" href="cart.html" aria-label="View and edit cart">Cart <span class="cart-count" data-cart-count>0</span></a>  <script src="assets/compliance-gate.js" defer></script>
 </body>
