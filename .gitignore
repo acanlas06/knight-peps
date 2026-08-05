@@ -46,3 +46,15 @@ smtp-config.json
 # Python bytecode
 __pycache__/
 *.pyc
+
+# Local order records
+orders.json
+
+# Admin allowlist
+admin-config.json
+
+# Stock levels
+inventory.json
+
+# Anonymous site analytics
+analytics.json

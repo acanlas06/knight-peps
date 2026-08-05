@@ -1,0 +1,6 @@
+{
+  "_readme": "Copy this file to admin-config.json (do not rename it) and list the account emails that should get the admin dashboard. Those accounts must be registered through the normal sign-up form first — passwords live in accounts.json, never here. admin-config.json is gitignored. Edits take effect immediately, no server restart needed.",
+  "admins": [
+    "you@example.com"
+  ]
+}

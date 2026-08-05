@@ -1,0 +1,650 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Knight Labs — Admin</title><meta name="robots" content="noindex"><link rel="icon" type="image/png" href="assets/knight-labs-crest-icon-transparent.png"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--gold:#d4af37;--gold2:#fff0a8;--gold3:#8c6713;--cream:#fff7df;--paper:#f5efe5;--ink:#11100b;--muted:#716958;--line:#dac89a;--surface:#fffdf8;--surface-2:#fff8ea;--input-bg:#fff;--card-shadow:0 10px 30px rgba(20,15,3,.07)}
+html[data-theme="dark"] body,body.dark-mode{--paper:#0a0907;--ink:#f5efe5;--muted:#a49c92;--line:#332f29;--surface:#14130f;--surface-2:#1b1914;--input-bg:#0f0e0b;--card-shadow:0 10px 30px rgba(0,0,0,.32)}
+body{font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);line-height:1.42;-webkit-font-smoothing:antialiased;min-height:100vh}
+a{text-decoration:none;color:inherit}
+.wrap{width:min(1280px,calc(100% - 40px));margin:0 auto}
+.topbar{background:linear-gradient(135deg,#11100b,#2a2109);border-bottom:1px solid rgba(212,175,55,.3)}
+.topbar-inner{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0;flex-wrap:wrap}
+.brand{display:flex;align-items:center;gap:12px;font-weight:950;color:var(--cream)}
+.brand img{width:38px;height:38px;object-fit:contain}
+.brand small{display:block;font-size:10px;font-weight:950;letter-spacing:.18em;text-transform:uppercase;color:var(--gold2)}
+.topbar-actions{display:flex;align-items:center;gap:12px;font-size:13px;color:rgba(255,247,223,.72)}
+.topbar-actions button{background:transparent;border:1px solid rgba(255,247,223,.28);color:var(--cream);border-radius:8px;padding:8px 14px;font:inherit;font-weight:800;cursor:pointer}
+.topbar-actions button:hover{background:rgba(255,247,223,.1)}
+main{padding:26px 0 70px}
+h1{font-size:26px;letter-spacing:-.03em;margin-bottom:4px}
+.sub{color:var(--muted);font-size:13px;margin-bottom:22px}
+.tiles{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:14px;margin-bottom:16px}
+.tile{border:1px solid var(--line);border-radius:14px;background:var(--surface);padding:16px 18px;box-shadow:var(--card-shadow)}
+.tile-value{font-size:25px;font-weight:950;letter-spacing:-.035em;line-height:1}
+.tile-label{font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-top:6px}
+.tile-note{font-size:12px;color:var(--muted);margin-top:4px}
+.tile.pending{border-style:dashed;background:transparent}
+.tile.pending .tile-value{color:var(--muted);font-size:17px}
+.panel{border:1px solid var(--line);border-radius:16px;background:var(--surface);box-shadow:var(--card-shadow);padding:20px;margin-top:18px}
+.controls{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.controls label{font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+select,input[type=search]{border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);padding:9px 11px;font:inherit;font-size:14px}
+.chipbar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.chip{border:1px solid var(--line);background:transparent;color:var(--ink);border-radius:999px;padding:7px 14px;font:inherit;font-size:13px;font-weight:800;cursor:pointer}
+.chip:hover{border-color:var(--gold3)}
+.chip.active{background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:transparent;color:#080604}
+.chip .count{opacity:.7;margin-left:5px}
+.chip.chip-cancelled{border-color:rgba(229,83,75,.45);color:#c23b33}
+.chip.chip-cancelled:hover{border-color:#e5534b}
+.chip.chip-cancelled.active{background:#c23b33;border-color:#c23b33;color:#fff}
+html[data-theme="dark"] .chip.chip-cancelled{color:#ef8078}
+table{width:100%;border-collapse:collapse;font-size:14px}
+th{text-align:left;font-size:11px;font-weight:900;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);padding:0 10px 10px;white-space:nowrap}
+th.sortable{cursor:pointer}
+th.sortable:hover{color:var(--gold3)}
+td{padding:12px 10px;border-top:1px solid var(--line);vertical-align:top}
+tr.row:hover{background:var(--surface-2)}
+.ono{font-weight:950;letter-spacing:-.01em}
+.ono a{color:var(--gold3)}
+.cust{font-size:13px}
+.cust span{display:block;color:var(--muted);font-size:12px}
+.items{font-size:12px;color:var(--muted);line-height:1.6;max-width:280px}
+.amt{font-weight:950;white-space:nowrap}
+.status-pill{display:inline-block;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.s-unpaid{background:rgba(229,83,75,.14);color:#c23b33;border:1px solid rgba(229,83,75,.4)}
+.s-paid{background:rgba(123,162,79,.16);color:#4d7a28;border:1px solid rgba(123,162,79,.42)}
+.s-way{background:rgba(212,175,55,.16);color:#8c6713;border:1px solid rgba(212,175,55,.45)}
+.s-delivered{background:rgba(120,120,120,.14);color:#5f5e5a;border:1px solid rgba(120,120,120,.35)}
+html[data-theme="dark"] .s-unpaid{color:#ef8078}html[data-theme="dark"] .s-paid{color:#a7cc7d}html[data-theme="dark"] .s-way{color:var(--gold2)}html[data-theme="dark"] .s-delivered{color:#b4b2a9}
+.empty{padding:34px;text-align:center;color:var(--muted);border:1px dashed var(--line);border-radius:14px}
+.gate{max-width:460px;margin:80px auto;border:1px solid var(--line);border-radius:18px;background:var(--surface);padding:30px;text-align:center;box-shadow:var(--card-shadow)}
+.gate h2{font-size:20px;margin-bottom:8px}
+.gate p{color:var(--muted);font-size:14px;line-height:1.6}
+.gate a{display:inline-block;margin-top:18px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#090703;font-weight:950;padding:11px 20px;border-radius:999px}
+.toast{position:fixed;left:50%;bottom:24px;transform:translate(-50%,18px);background:#11100b;color:var(--cream);border:1px solid rgba(212,175,55,.4);border-radius:999px;padding:12px 20px;font-weight:800;font-size:14px;opacity:0;pointer-events:none;transition:.2s;z-index:60}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+.tabs{display:flex;gap:4px;border-bottom:2px solid var(--line);margin-bottom:20px}
+.tab{background:none;border:0;border-bottom:2px solid transparent;margin-bottom:-2px;padding:11px 16px;font:inherit;font-size:15px;font-weight:900;color:var(--muted);cursor:pointer}
+.tab:hover{color:var(--ink)}
+.tab.active{color:var(--ink);border-bottom-color:var(--gold)}
+.tab .badge{display:inline-block;margin-left:7px;background:var(--surface-2);border:1px solid var(--line);border-radius:999px;padding:1px 8px;font-size:12px}
+.tab.danger.active{border-bottom-color:#e5534b}
+.s-cancelled{background:rgba(120,120,120,.14);color:#57564f;border:1px solid rgba(120,120,120,.4);text-decoration:line-through}
+html[data-theme="dark"] .s-cancelled{color:#b4b2a9}
+.btn-cancel{background:transparent;border:1px solid rgba(229,83,75,.5);color:#c23b33;border-radius:7px;padding:7px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.btn-cancel:hover{background:rgba(229,83,75,.12);border-color:#e5534b}
+html[data-theme="dark"] .btn-cancel{color:#ef8078}
+.btn-restore{background:transparent;border:1px solid var(--line);color:var(--ink);border-radius:7px;padding:7px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.btn-restore:hover{border-color:var(--gold3);background:rgba(212,175,55,.1)}
+.cancel-meta{font-size:12px;color:var(--muted);line-height:1.5}
+.stock-input{width:96px;border:1px solid var(--line);border-radius:8px;background:var(--input-bg);color:var(--ink);padding:8px 10px;font:inherit;font-size:14px;font-weight:900}
+.stock-input.low{border-color:rgba(212,175,55,.7)}
+.stock-input.out{border-color:rgba(229,83,75,.7)}
+.pill-stock{display:inline-block;padding:4px 10px;border-radius:999px;font-size:10px;font-weight:950;letter-spacing:.08em;text-transform:uppercase;white-space:nowrap}
+.k-instock{background:rgba(123,162,79,.16);color:#4d7a28;border:1px solid rgba(123,162,79,.42)}
+.k-low{background:rgba(212,175,55,.18);color:#8c6713;border:1px solid rgba(212,175,55,.5)}
+.k-out{background:rgba(229,83,75,.14);color:#c23b33;border:1px solid rgba(229,83,75,.42)}
+.k-over{background:rgba(229,83,75,.22);color:#a02a22;border:1px solid #e5534b}
+.k-untracked{background:rgba(120,120,120,.12);color:#5f5e5a;border:1px solid rgba(120,120,120,.32)}
+html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{color:var(--gold2)}html[data-theme="dark"] .k-out,html[data-theme="dark"] .k-over{color:#ef8078}html[data-theme="dark"] .k-untracked{color:#b4b2a9}
+.modal-back{position:absolute;inset:0;background:rgba(10,9,7,.6);display:flex;align-items:center;justify-content:center;padding:20px}
+.modal-host{position:fixed;inset:0;z-index:80;display:none}
+.modal-host.open{display:block}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:18px;padding:26px;max-width:460px;width:100%;box-shadow:0 30px 80px rgba(0,0,0,.4)}
+.modal h3{font-size:19px;letter-spacing:-.02em;margin-bottom:8px}
+.modal p{color:var(--muted);font-size:14px;line-height:1.6}
+.modal-summary{border:1px solid var(--line);border-radius:12px;background:var(--surface-2);padding:14px;margin:16px 0;font-size:14px}
+.modal-summary b{display:block;margin-bottom:4px}
+.modal-summary span{color:var(--muted);font-size:13px}
+.modal label{display:block;font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin:14px 0 6px}
+.modal input[type=text]{width:100%;border:1px solid var(--line);border-radius:9px;background:var(--input-bg);color:var(--ink);padding:11px;font:inherit;font-size:14px}
+.modal-actions{display:flex;gap:10px;margin-top:20px}
+.modal-actions button{flex:1;border-radius:9px;padding:12px;font:inherit;font-weight:950;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--ink)}
+.modal-actions .danger{background:#c23b33;border-color:#c23b33;color:#fff}
+.modal-actions .danger:hover{background:#a82f28}
+.modal-actions .confirm{background:linear-gradient(135deg,var(--gold2),var(--gold));border-color:transparent;color:#080604}
+@media(max-width:1200px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(max-width:1000px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.items{display:none}th.col-items{display:none}}
+@media(max-width:680px){.tiles{grid-template-columns:1fr}td,th{padding-left:6px;padding-right:6px}}
+</style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
+</head><body>
+
+<div class="topbar">
+  <div class="wrap topbar-inner">
+    <a class="brand" href="index.html">
+      <img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs">
+      <span>Knight Labs<small>Admin</small></span>
+    </a>
+    <div class="topbar-actions">
+      <span id="adminWho"></span>
+      <button type="button" id="refreshBtn">Refresh</button>
+      <button type="button" id="signOutBtn">Sign out</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+  <div id="gate" class="gate" style="display:none">
+    <h2>Admin sign-in required</h2>
+    <p>This dashboard needs an active admin session. Sign in with an admin account to continue.</p>
+    <a href="account.html">Go to sign in</a>
+  </div>
+
+  <div id="dash" style="display:none">
+    <h1>Orders</h1>
+    <p class="sub" id="dashSub">Loading…</p>
+
+    <div class="tiles" id="tiles"></div>
+    <div class="tiles" id="pendingTiles"></div>
+
+    <div class="tabs">
+      <button class="tab active" id="tabOrders" data-tab="orders">Orders</button>
+      <button class="tab" id="tabProducts" data-tab="products">Products<span class="badge" id="soldOutBadge">0</span></button>
+    </div>
+
+    <div class="panel">
+      <div class="chipbar" id="statusChips"></div>
+      <div class="controls">
+        <label for="sortSel">Sort</label>
+        <select id="sortSel">
+          <option value="date-desc">Date placed — newest first</option>
+          <option value="date-asc">Date placed — oldest first</option>
+          <option value="total-desc">Order total — high to low</option>
+          <option value="total-asc">Order total — low to high</option>
+          <option value="status">Status</option>
+        </select>
+        <input type="search" id="searchBox" placeholder="Search order, email or name">
+      </div>
+      <div id="tableWrap"></div>
+    </div>
+
+    <div class="panel" id="productsPanel" style="display:none">
+      <p class="sub" style="margin-bottom:16px">Each vial size has its own stock count. Leave a size untracked to keep it always available. Counts can go negative if you oversell \u2014 orders are never blocked.</p>
+      <div id="productsWrap"></div>
+    </div>
+  </div>
+</main>
+
+<div class="modal-host" id="modalHost">
+  <div class="modal-back">
+    <div class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <h3 id="modalTitle">Cancel this order?</h3>
+      <p id="modalText">This cannot be undone from the customer's side. They keep their order link, and it will show as cancelled.</p>
+      <div class="modal-summary" id="modalSummary"></div>
+      <div id="modalReasonWrap">
+        <label for="modalReason">Reason (optional, kept for your records)</label>
+        <input type="text" id="modalReason" placeholder="Out of stock, customer request…" maxlength="300">
+      </div>
+      <div class="modal-actions">
+        <button type="button" id="modalDismiss">Keep order</button>
+        <button type="button" class="danger" id="modalConfirm">Cancel order</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var session=null;
+  try{session=JSON.parse(sessionStorage.getItem('knightLabsAdmin')||'null');}catch(e){}
+
+  var gate=document.getElementById('gate');
+  var dash=document.getElementById('dash');
+  var STATUS_CLASS={'Unpaid':'s-unpaid','Paid':'s-paid','On its way':'s-way','Delivered':'s-delivered','Cancelled':'s-cancelled'};
+  var statuses=['Unpaid','Paid','On its way','Delivered'];
+  var CANCELLED='Cancelled';
+  var orders=[];
+  var activeStatus='All';
+  var activeTab='orders';
+
+  function showGate(){gate.style.display='block';dash.style.display='none';}
+  if(!session||!session.token){showGate();return;}
+  document.getElementById('adminWho').textContent=session.email||'';
+
+  function money(n){return '$'+Number(n||0).toLocaleString(undefined,{minimumFractionDigits:2,maximumFractionDigits:2});}
+  function esc(v){return String(v==null?'':v).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c];});}
+  function dt(iso){
+    var d=new Date(iso);
+    if(isNaN(d.getTime()))return '—';
+    return d.toLocaleDateString(undefined,{month:'short',day:'numeric',year:'numeric'})
+      +'<span style="display:block;color:var(--muted);font-size:12px">'
+      +d.toLocaleTimeString(undefined,{hour:'numeric',minute:'2-digit'})+'</span>';
+  }
+  var toastTimer=null;
+  function toast(msg){
+    var el=document.getElementById('toast');
+    el.textContent=msg;el.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer=setTimeout(function(){el.classList.remove('show');},2400);
+  }
+  function post(path,body){
+    body=body||{};body.adminToken=session.token;
+    return fetch(path,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)})
+      .then(function(res){
+        return res.json().catch(function(){return {};}).then(function(data){
+          return {status:res.status,data:data};
+        });
+      });
+  }
+
+  function renderTiles(stats){
+    document.getElementById('tiles').innerHTML=[
+      ['Gross revenue',money(stats.grossRevenue),stats.orderCount+' orders'],
+      ['Collected',money(stats.collectedRevenue),'Paid, shipped or delivered'],
+      ['Awaiting payment',money(stats.unpaidRevenue),(stats.byStatus['Unpaid']||0)+' unpaid orders'],
+      ['Average order',money(stats.averageOrderValue),stats.uniqueCustomers+' unique customers'],
+      ['Cancelled',(stats.cancelledCount||0)+'',money(stats.cancelledValue||0)+' not counted in revenue']
+    ].map(function(t){
+      return '<div class="tile"><div class="tile-value">'+t[1]+'</div>'
+        +'<div class="tile-label">'+t[0]+'</div><div class="tile-note">'+esc(t[2])+'</div></div>';
+    }).join('');
+
+    var site=stats.site||{};
+    var today=site.today||{},last7=site.last7||{};
+    function mmss(sec){
+      sec=Math.max(0,Math.round(sec||0));
+      var m=Math.floor(sec/60),r=sec%60;
+      return m?(m+'m '+r+'s'):(r+'s');
+    }
+    var tracking=(site.trackedDays||0)>0;
+    document.getElementById('pendingTiles').innerHTML=tracking?[
+      ['Visitors today',today.visitors||0,(last7.visitors||0)+' over 7 days'],
+      ['Avg. time on site',mmss(today.avgSeconds),(today.sessions||0)+' sessions today'],
+      ['Added to cart',today.addToCart||0,(last7.addToCart||0)+' over 7 days'],
+      ['Page views',today.pageviews||0,(last7.pageviews||0)+' over 7 days']
+    ].map(function(t){
+      return '<div class="tile"><div class="tile-value">'+esc(String(t[1]))+'</div>'
+        +'<div class="tile-label">'+t[0]+'</div><div class="tile-note">'+esc(String(t[2]))+'</div></div>';
+    }).join('')
+      +'<div class="tile"><div class="tile-value">'+stats.unitsOrdered+'</div>'
+      +'<div class="tile-label">Units ordered</div><div class="tile-note">Across all orders</div></div>'
+    : [
+      ['Visitors today','Awaiting traffic'],
+      ['Avg. time on site','Awaiting traffic'],
+      ['Added to cart','Awaiting traffic'],
+      ['Page views','Awaiting traffic']
+    ].map(function(t){
+      return '<div class="tile pending"><div class="tile-value">'+t[1]+'</div>'
+        +'<div class="tile-label">'+t[0]+'</div>'
+        +'<div class="tile-note">Visit the storefront to start collecting</div></div>';
+    }).join('')
+      +'<div class="tile"><div class="tile-value">'+stats.unitsOrdered+'</div>'
+      +'<div class="tile-label">Units ordered</div><div class="tile-note">Across all orders</div></div>';
+
+    document.getElementById('dashSub').textContent=
+      stats.orderCount+(stats.orderCount===1?' order':' orders')+' across all accounts and guests'
+      +(stats.daily&&stats.daily.length?' · '+stats.daily[0].orders+' today/'+stats.daily[0].date:'');
+  }
+
+  function activeOrders(){return orders.filter(function(o){return o.status!==CANCELLED;});}
+  function cancelledOrders(){return orders.filter(function(o){return o.status===CANCELLED;});}
+
+  function renderChips(){
+    var chipbar=document.getElementById('statusChips');
+    chipbar.style.display='flex';
+    var pool=activeOrders();
+    var counts={All:pool.length};
+    statuses.forEach(function(s){counts[s]=pool.filter(function(o){return o.status===s;}).length;});
+    counts[CANCELLED]=cancelledOrders().length;
+    // Cancelled sits at the end as its own filter rather than a separate tab.
+    chipbar.innerHTML=['All'].concat(statuses).concat([CANCELLED]).map(function(s){
+      return '<button class="chip'+(s===activeStatus?' active':'')
+        +(s===CANCELLED?' chip-cancelled':'')+'" data-status="'+esc(s)+'">'
+        +esc(s)+'<span class="count">'+counts[s]+'</span></button>';
+    }).join('');
+    chipbar.querySelectorAll('.chip').forEach(function(btn){
+      btn.addEventListener('click',function(){activeStatus=this.dataset.status;renderChips();renderTable();});
+    });
+  }
+
+  function visibleRows(){
+    var q=document.getElementById('searchBox').value.trim().toLowerCase();
+    var pool=activeStatus===CANCELLED?cancelledOrders():activeOrders();
+    var rows=pool.filter(function(o){
+      if(activeStatus!=='All'&&activeStatus!==CANCELLED&&o.status!==activeStatus)return false;
+      if(!q)return true;
+      return (o.orderNumber||'').toLowerCase().indexOf(q)>=0
+        ||(o.email||'').toLowerCase().indexOf(q)>=0
+        ||(o.customerName||'').toLowerCase().indexOf(q)>=0;
+    });
+    var mode=document.getElementById('sortSel').value;
+    rows.sort(function(a,b){
+      if(mode==='date-asc')return (a.placedAt||'').localeCompare(b.placedAt||'');
+      if(mode==='total-desc')return (b.total||0)-(a.total||0);
+      if(mode==='total-asc')return (a.total||0)-(b.total||0);
+      if(mode==='status')return statuses.indexOf(a.status)-statuses.indexOf(b.status)
+        ||(b.placedAt||'').localeCompare(a.placedAt||'');
+      return (b.placedAt||'').localeCompare(a.placedAt||'');
+    });
+    return rows;
+  }
+
+  function renderTable(){
+    var rows=visibleRows();
+    var wrap=document.getElementById('tableWrap');
+    var isCancelledView=activeStatus===CANCELLED;
+    if(!rows.length){
+      wrap.innerHTML='<div class="empty">'+(isCancelledView
+        ? 'No cancelled orders. Nothing has been cancelled yet.'
+        : 'No orders match this view.')+'</div>';
+      return;
+    }
+    wrap.innerHTML='<table><thead><tr>'
+      +'<th>Order</th><th>Placed</th><th>Customer</th><th class="col-items">Items</th>'
+      +'<th>Total</th><th>Status</th><th>'+(isCancelledView?'Cancelled':'Actions')+'</th>'
+      +'</tr></thead><tbody>'
+      +rows.map(function(o){
+        var items=(o.items||[]).map(function(i){
+          return esc(i.name)+' '+esc(i.size)+' ×'+i.qty;
+        }).join('<br>');
+        var last='<td>';
+        if(isCancelledView){
+          last+='<div class="cancel-meta">'+(o.cancelledAt?esc(new Date(o.cancelledAt).toLocaleString()):'')
+            +(o.cancelledBy?'<br>by '+esc(o.cancelledBy):'')
+            +(o.cancelReason?'<br>“'+esc(o.cancelReason)+'”':'')
+            +'</div><button class="btn-restore" data-restore="'+esc(o.orderNumber)+'">Restore</button>';
+        }else{
+          var opts=statuses.map(function(s){
+            return '<option value="'+esc(s)+'"'+(s===o.status?' selected':'')+'>'+esc(s)+'</option>';
+          }).join('');
+          last+='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
+            +'<select data-order="'+esc(o.orderNumber)+'">'+opts+'</select>'
+            +'<button class="btn-cancel" data-cancel="'+esc(o.orderNumber)+'">Cancel</button></div>';
+        }
+        last+='</td>';
+        return '<tr class="row"><td class="ono">'+esc(o.orderNumber)+'</td>'
+          +'<td>'+dt(o.placedAt)+'</td>'
+          +'<td class="cust">'+esc(o.customerName||'—')+'<span>'+esc(o.email||'')+'</span></td>'
+          +'<td class="items">'+(items||'—')+'</td>'
+          +'<td class="amt">'+money(o.total)+'</td>'
+          +'<td><span class="status-pill '+(STATUS_CLASS[o.status]||'')+'">'+esc(o.status)+'</span></td>'
+          +last+'</tr>';
+      }).join('')+'</tbody></table>';
+
+    wrap.querySelectorAll('select[data-order]').forEach(function(sel){
+      sel.addEventListener('change',function(){
+        var number=this.dataset.order,next=this.value,control=this;
+        control.disabled=true;
+        post('/api/admin/order-status',{orderNumber:number,status:next}).then(function(r){
+          if(r.status===401){showGate();return;}
+          if(!r.data.ok){toast('Could not update '+number);control.disabled=false;return;}
+          // Update in place so the pill and counts follow without a full reload.
+          orders.forEach(function(o){if(o.orderNumber===number)o.status=next;});
+          toast(number+' → '+next);
+          renderAll();loadStats();
+        }).catch(function(){toast('Could not reach the server');control.disabled=false;});
+      });
+    });
+
+    wrap.querySelectorAll('[data-cancel]').forEach(function(btn){
+      btn.addEventListener('click',function(){askCancel(this.dataset.cancel);});
+    });
+    wrap.querySelectorAll('[data-restore]').forEach(function(btn){
+      btn.addEventListener('click',function(){askRestore(this.dataset.restore);});
+    });
+  }
+
+  /* ---------- confirmation dialog ---------- */
+
+  var modal=document.getElementById('modalHost');
+  var pendingAction=null;
+
+  function findOrder(number){
+    return orders.filter(function(o){return o.orderNumber===number;})[0];
+  }
+  function closeModal(){
+    modal.classList.remove('open');
+    pendingAction=null;
+    document.getElementById('modalReason').value='';
+  }
+  function openModal(opts){
+    document.getElementById('modalTitle').textContent=opts.title;
+    document.getElementById('modalText').textContent=opts.text;
+    document.getElementById('modalSummary').innerHTML=opts.summary;
+    document.getElementById('modalReasonWrap').style.display=opts.reason?'block':'none';
+    var confirmBtn=document.getElementById('modalConfirm');
+    confirmBtn.textContent=opts.confirmLabel;
+    confirmBtn.className=opts.danger?'danger':'confirm';
+    document.getElementById('modalDismiss').textContent=opts.dismissLabel;
+    pendingAction=opts.run;
+    modal.classList.add('open');
+    confirmBtn.focus();
+  }
+  function summaryFor(o){
+    return '<b>'+esc(o.orderNumber)+' · '+money(o.total)+'</b>'
+      +'<span>'+esc(o.customerName||'')+' · '+esc(o.email||'')+'<br>'
+      +(o.itemCount===1?'1 item':(o.itemCount||0)+' items')
+      +' · placed '+esc(o.placedAt?new Date(o.placedAt).toLocaleDateString():'—')+'</span>';
+  }
+
+  function askCancel(number){
+    var o=findOrder(number);
+    if(!o)return;
+    openModal({
+      title:'Cancel order '+number+'?',
+      text:'The customer keeps their order link and will see the order marked as cancelled. You can restore it afterwards from the Cancelled tab.',
+      summary:summaryFor(o),
+      reason:true,
+      danger:true,
+      confirmLabel:'Yes, cancel order',
+      dismissLabel:'Keep order',
+      run:function(){
+        var reason=document.getElementById('modalReason').value.trim();
+        // confirm:true is required by the server as well as the UI.
+        post('/api/admin/cancel-order',{orderNumber:number,reason:reason,confirm:true}).then(function(r){
+          if(r.status===401){closeModal();showGate();return;}
+          if(!r.data.ok){toast('Could not cancel '+number);closeModal();return;}
+          var updated=r.data.order;
+          orders=orders.map(function(x){return x.orderNumber===number?updated:x;});
+          closeModal();
+          toast(number+' cancelled');
+          renderAll();loadStats();
+        }).catch(function(){toast('Could not reach the server');closeModal();});
+      }
+    });
+  }
+
+  function askRestore(number){
+    var o=findOrder(number);
+    if(!o)return;
+    openModal({
+      title:'Restore order '+number+'?',
+      text:'This puts the order back where it was before cancellation, and it will reappear in the Orders tab.',
+      summary:summaryFor(o),
+      reason:false,
+      danger:false,
+      confirmLabel:'Yes, restore order',
+      dismissLabel:'Leave cancelled',
+      run:function(){
+        post('/api/admin/restore-order',{orderNumber:number,confirm:true}).then(function(r){
+          if(r.status===401){closeModal();showGate();return;}
+          if(!r.data.ok){toast('Could not restore '+number);closeModal();return;}
+          var updated=r.data.order;
+          orders=orders.map(function(x){return x.orderNumber===number?updated:x;});
+          closeModal();
+          toast(number+' restored to '+updated.status);
+          renderAll();loadStats();
+        }).catch(function(){toast('Could not reach the server');closeModal();});
+      }
+    });
+  }
+
+  document.getElementById('modalConfirm').addEventListener('click',function(){
+    if(pendingAction)pendingAction();
+  });
+  document.getElementById('modalDismiss').addEventListener('click',closeModal);
+  modal.querySelector('.modal-back').addEventListener('click',function(e){
+    if(e.target===this)closeModal();
+  });
+  document.addEventListener('keydown',function(e){
+    if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();
+  });
+
+  /* ---------- products / stock ---------- */
+
+  var products=[];
+  var productsState='idle';   // idle | loading | ready | error
+  var productsError='';
+  var LOW_STOCK=5;
+
+  function stockKind(v){
+    if(!v.tracked)return ['k-untracked','Untracked'];
+    if(v.stock<0)return ['k-over','Oversold '+Math.abs(v.stock)];
+    if(v.stock===0)return ['k-out','Sold out'];
+    if(v.stock<=LOW_STOCK)return ['k-low','Low stock'];
+    return ['k-instock','In stock'];
+  }
+
+  function renderProducts(){
+    var wrap=document.getElementById('productsWrap');
+    if(productsState==='loading'||productsState==='idle'){
+      wrap.innerHTML='<div class="empty">Loading products\u2026</div>';
+      if(productsState==='idle')loadProducts();
+      return;
+    }
+    if(productsState==='error'||!products.length){
+      wrap.innerHTML='<div class="empty">'+esc(productsError||'Could not load products.')
+        +'<div style="margin-top:14px"><button class="btn-restore" id="retryProducts">Try again</button></div></div>';
+      var retry=document.getElementById('retryProducts');
+      if(retry)retry.addEventListener('click',function(){productsState='idle';renderProducts();});
+      return;
+    }
+    var rows='';
+    products.forEach(function(p){
+      p.variants.forEach(function(v,idx){
+        var kind=stockKind(v);
+        var cls=v.tracked?(v.stock<=0?'out':(v.stock<=LOW_STOCK?'low':'')):'';
+        // The product name spans its size rows so groups read as one block.
+        var nameCell=idx===0
+          ? '<td class="ono" style="font-size:14px" rowspan="'+p.variants.length+'">'+esc(p.name)
+            +'<div style="color:var(--muted);font-size:12px;font-weight:400">'+esc(p.slug)+'</div>'
+            +(p.soldOut?'<div style="margin-top:6px"><span class="pill-stock k-out">All sizes out</span></div>':'')
+            +'</td>'
+          : '';
+        rows+='<tr class="row">'+nameCell
+          +'<td style="font-weight:900;white-space:nowrap">'+esc(v.size)+'</td>'
+          +'<td class="amt">'+v.unitsSold+'</td>'
+          +'<td><input class="stock-input '+cls+'" type="number" step="1" '
+          +'value="'+(v.tracked?v.stock:'')+'" placeholder="\u2014" '
+          +'data-slug="'+esc(v.slug)+'" data-size="'+esc(v.size)+'"></td>'
+          +'<td><span class="pill-stock '+kind[0]+'">'+esc(kind[1])+'</span></td>'
+          +'<td><button class="btn-restore" data-save-slug="'+esc(v.slug)+'" data-save-size="'+esc(v.size)+'">Save</button></td>'
+          +'</tr>';
+      });
+    });
+    wrap.innerHTML='<table><thead><tr><th>Product</th><th>Size</th><th>Units sold</th>'
+      +'<th>Stock remaining</th><th>State</th><th></th></tr></thead><tbody>'+rows+'</tbody></table>';
+
+    function commit(slug,size,input,btn){
+      var raw=(input.value||'').trim();
+      if(raw===''){toast('Enter a number to start tracking '+slug+' '+size);return;}
+      var value=parseInt(raw,10);
+      if(isNaN(value)){toast('Stock must be a whole number');return;}
+      if(btn)btn.disabled=true;
+      input.disabled=true;
+      post('/api/admin/set-stock',{slug:slug,size:size,stock:value}).then(function(r){
+        if(r.status===401){showGate();return;}
+        if(!r.data.ok){toast('Could not save stock for '+slug+' '+size);return;}
+        products=r.data.products||products;
+        toast(slug+' '+size+' set to '+value);
+        renderProducts();renderTabs();
+      }).catch(function(){toast('Could not reach the server');})
+        .finally(function(){input.disabled=false;if(btn)btn.disabled=false;});
+    }
+
+    wrap.querySelectorAll('[data-save-slug]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var slug=this.dataset.saveSlug,size=this.dataset.saveSize;
+        commit(slug,size,wrap.querySelector('[data-slug="'+slug+'"][data-size="'+size+'"]'),this);
+      });
+    });
+    // Enter commits, so you can tab down a column and type.
+    wrap.querySelectorAll('input[data-slug]').forEach(function(input){
+      input.addEventListener('keydown',function(e){
+        if(e.key==='Enter'){e.preventDefault();commit(this.dataset.slug,this.dataset.size,this,null);}
+      });
+    });
+  }
+
+  function loadProducts(){
+    productsState='loading';
+    return post('/api/admin/inventory').then(function(r){
+      if(r.status===401){showGate();return;}
+      if(r.data&&r.data.ok){
+        products=r.data.products||[];
+        productsState='ready';
+        productsError='';
+      }else{
+        productsState='error';
+        // A 404 here almost always means the running server predates this
+        // endpoint, which is worth saying out loud.
+        productsError=r.status===404
+          ? 'The server does not have the inventory endpoint. Restart it (close the console window and run start-server.bat) and try again.'
+          : 'Could not load products from the server.';
+      }
+      renderProducts();renderTabs();
+    }).catch(function(){
+      productsState='error';
+      productsError='Could not reach the server. Start it with: python server.py';
+      renderProducts();
+    });
+  }
+
+  function renderTabs(){
+    var out=products.filter(function(p){return p.soldOut;}).length;
+    var badge=document.getElementById('soldOutBadge');
+    badge.textContent=out;
+    badge.style.display=out?'inline-block':'none';
+    document.getElementById('tabOrders').classList.toggle('active',activeTab==='orders');
+    document.getElementById('tabProducts').classList.toggle('active',activeTab==='products');
+    var showProducts=activeTab==='products';
+    document.getElementById('productsPanel').style.display=showProducts?'block':'none';
+    document.querySelector('#tableWrap').closest('.panel').style.display=showProducts?'none':'block';
+  }
+  function renderAll(){
+    renderTabs();
+    if(activeTab==='products'){renderProducts();return;}
+    renderChips();renderTable();
+  }
+
+  document.querySelectorAll('.tab').forEach(function(tab){
+    tab.addEventListener('click',function(){
+      activeTab=this.dataset.tab;
+      renderAll();
+    });
+  });
+
+  function loadStats(){
+    return post('/api/admin/stats').then(function(r){
+      if(r.status===401){showGate();return;}
+      if(r.data.ok)renderTiles(r.data.stats);
+    });
+  }
+
+  function loadOrders(){
+    return post('/api/admin/orders').then(function(r){
+      if(r.status===401){showGate();return;}
+      if(!r.data.ok)return;
+      orders=r.data.orders||[];
+      if(r.data.statuses&&r.data.statuses.length)statuses=r.data.statuses;
+      gate.style.display='none';dash.style.display='block';
+      renderAll();
+    });
+  }
+
+  document.getElementById('sortSel').addEventListener('change',renderTable);
+  document.getElementById('searchBox').addEventListener('input',renderTable);
+  document.getElementById('refreshBtn').addEventListener('click',function(){
+    loadOrders().then(loadStats).then(loadProducts).then(function(){toast('Refreshed');});
+  });
+  document.getElementById('signOutBtn').addEventListener('click',function(){
+    sessionStorage.removeItem('knightLabsAdmin');
+    window.location.href='account.html';
+  });
+
+  loadOrders().then(loadStats).then(loadProducts).catch(function(){
+    document.getElementById('dashSub').textContent='Could not reach the server. Start it with: python server.py';
+  });
+})();
+</script>
+</body></html>

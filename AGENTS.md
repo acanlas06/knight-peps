@@ -14,7 +14,14 @@ Current user-approved direction:
 
 ## Local Preview
 
-Run from this directory:
+Run from this directory (serves static pages plus the `/api/signup` and
+`/api/signin` auth endpoints used by `account.html`):
+
+```bash
+python server.py 8123
+```
+
+For static-only browsing (no sign-in/create-account), plain `http.server` still works:
 
 ```bash
 python -m http.server 8123 --bind 127.0.0.1
@@ -40,6 +47,8 @@ http://127.0.0.1:8123/mobile-preview.html
 - `checkout.html` — static checkout mockup.
 - `order-confirmation.html` — post-checkout confirmation page.
 - `assets/` — image assets.
+- `server.py` — stdlib-only local dev server: serves the static site and the `/api/signup`/`/api/signin` auth endpoints backing `account.html`. Stores salted PBKDF2 password hashes in `accounts.json` (gitignored, never plaintext).
+- `verify_auth.py` — small script exercising the auth endpoints (signup, wrong email, wrong password, success).
 - `build_product_pages.py` and `add_*.py` scripts — prior one-off generation/update helpers. Inspect before reusing; do not assume they are the source of truth.
 
 ## Development Rules
@@ -47,7 +56,7 @@ http://127.0.0.1:8123/mobile-preview.html
 1. Preserve the black/gold Knight Labs visual identity unless the user requests a redesign.
 2. Keep pages static and dependency-light by default: plain HTML, CSS, and JavaScript.
 3. Maintain consistent navigation and cart/checkout affordances across all product/category pages.
-4. Do not add real payment processing, medical claims, credential collection, or backend behavior unless explicitly requested.
+4. Do not add real payment processing, medical claims, credential collection, or backend behavior unless explicitly requested. (Local account sign-in/create-account via `server.py` was explicitly requested and added — see `server.py`/`verify_auth.py`. Do not expand this into a real production auth system without a new explicit request.)
 5. Keep peptide/product copy cautious and research-use oriented.
 6. For broad product/page changes, update all affected product/category pages consistently rather than one page only.
 7. Prefer small, targeted edits. If generating pages with scripts, inspect the diff afterward.

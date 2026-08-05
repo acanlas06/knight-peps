@@ -88,7 +88,12 @@
   <div class="field"><label for="checkout-addr-state">State/Province</label><input id="checkout-addr-state" name="addrState" autocomplete="shipping address-level1" placeholder="State" required></div>
   <div class="field"><label for="checkout-addr-zip">Postal code</label><input id="checkout-addr-zip" name="addrZip" autocomplete="shipping postal-code" placeholder="12345" required></div>
   <div class="field"><label for="checkout-addr-country">Country</label><input id="checkout-addr-country" name="addrCountry" autocomplete="shipping country-name" placeholder="Country" required></div>
-</div><label class="checkline"><input id="checkout-ack" name="ack" type="checkbox" required> <span>I understand these products are for research and laboratory use only and are not intended for human or veterinary consumption.</span></label><div class="notice-box" style="margin-top:14px"><b>Payment note:</b> This site does not collect payment. If Zelle is selected, payment details are sent only after availability and final total are confirmed.</div><div class="card-actions"><button class="btn primary" type="submit" id="checkout-submit" disabled title="Confirm the research-use acknowledgment to continue">Submit Order Request</button><a class="btn secondary" href="cart.html">Back to Cart</a></div></form><aside class="summary"><div class="kicker">Order Summary</div><h2 style="font-size:34px;letter-spacing:-.05em">Review order</h2><div class="checkout-items" id="checkout-items"></div><div class="summary-row"><span>Total items</span><b id="checkout-count">0</b></div><div class="summary-row"><span>Subtotal</span><b id="checkout-subtotal">$0</b></div><div class="summary-row"><span>Shipping</span><b>TBD</b></div><div class="summary-row"><span>Total</span><b class="summary-total" id="checkout-total">$0</b></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
+</div>
+
+<label class="checkline" id="primary-address-prompt" style="display:none">
+  <input type="checkbox" id="make-primary-address">
+  <span id="primary-address-label">Would you like to make this address your primary one?</span>
+</label><label class="checkline"><input id="checkout-ack" name="ack" type="checkbox" required> <span>I understand these products are for research and laboratory use only and are not intended for human or veterinary consumption.</span></label><div class="notice-box" style="margin-top:14px"><b>Payment note:</b> This site does not collect payment. If Zelle is selected, payment details are sent only after availability and final total are confirmed.</div><div class="card-actions"><button class="btn primary" type="submit" id="checkout-submit" disabled title="Confirm the research-use acknowledgment to continue">Submit Order Request</button><a class="btn secondary" href="cart.html">Back to Cart</a></div></form><aside class="summary"><div class="kicker">Order Summary</div><h2 style="font-size:34px;letter-spacing:-.05em">Review order</h2><div class="checkout-items" id="checkout-items"></div><div class="summary-row"><span>Total items</span><b id="checkout-count">0</b></div><div class="summary-row"><span>Subtotal</span><b id="checkout-subtotal">$0</b></div><div class="summary-row"><span>Shipping</span><b>TBD</b></div><div class="summary-row"><span>Total</span><b class="summary-total" id="checkout-total">$0</b></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
 <script>
 const KL_PRODUCTS={"retatrutide": {"name": "Retatrutide","sizes": ["10mg","20mg","30mg"]},"tirzepatide": {"name": "Tirzepatide","sizes": ["10mg","20mg","30mg"]},"semaglutide": {"name": "Semaglutide","sizes": ["5mg","10mg"]},"bpc-157": {"name": "BPC-157","sizes": ["10mg"]},"tb500": {"name": "TB500","sizes": ["10mg"]},"bpc-157-tb500-blend": {"name": "BPC-157 + TB500 Blend","sizes": ["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin": {"name": "CJC-1295 without DAC + Ipamorelin","sizes": ["5mg + 5mg","10mg + 10mg"]},"ipamorelin": {"name": "Ipamorelin","sizes": ["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29": {"name": "CJC-1295 without DAC / Mod GRF 1-29","sizes": ["2mg","5mg"]},"nad": {"name": "NAD+","sizes": ["500mg"]},"glutathione": {"name": "Glutathione","sizes": ["600mg","1200mg"]},"epithalon": {"name": "Epithalon","sizes": ["10mg","50mg"]},"semax": {"name": "Semax","sizes": ["10mg"]},"selank": {"name": "Selank","sizes": ["10mg"]},"ghk-cu": {"name": "GHK-CU","sizes": ["50mg"]}};
 const KL_PRICES={"retatrutide": {"10mg": 75,"20mg": 140,"30mg": 180},"tirzepatide": {"10mg": 60,"20mg": 80,"30mg": 100},"semaglutide": {"5mg": 35,"10mg": 50},"bpc-157": {"10mg": 45},"tb500": {"10mg": 50},"bpc-157-tb500-blend": {"5mg + 5mg": 89,"10mg + 10mg": 149},"cjc-1295-without-dac-ipamorelin": {"5mg + 5mg": 99,"10mg + 10mg": 169},"ipamorelin": {"5mg": 49,"10mg": 79},"cjc-1295-without-dac-mod-grf-1-29": {"2mg": 45,"5mg": 79},"nad": {"500mg": 55},"glutathione": {"600mg": 69,"1200mg": 119},"epithalon": {"10mg": 59,"50mg": 199},"semax": {"10mg": 45},"selank": {"10mg": 45},"ghk-cu": {"50mg": 40}};
@@ -156,6 +161,103 @@ function initSavedAddresses(){
     fillAddressFields(addresses[parseInt(this.value,10)]);
   });
 }
+/* ---------- primary address prompt (signed-in customers only) ---------- */
+
+var ADDRESS_FIELDS=['name','street','city','state','zip','country'];
+
+function addressesKey(email){return 'knightLabsAddresses_'+email;}
+function savedAddresses(){
+  var email=currentUserEmail();
+  if(!email)return [];
+  try{
+    var list=JSON.parse(localStorage.getItem(addressesKey(email))||'[]');
+    return Array.isArray(list)?list:[];
+  }catch(e){return [];}
+}
+function writeAddresses(list){
+  var email=currentUserEmail();
+  if(email)localStorage.setItem(addressesKey(email),JSON.stringify(list));
+}
+function formAddress(){
+  return {
+    name:(document.querySelector('#checkout-addr-name').value||'').trim(),
+    street:(document.querySelector('#checkout-addr-street').value||'').trim(),
+    city:(document.querySelector('#checkout-addr-city').value||'').trim(),
+    state:(document.querySelector('#checkout-addr-state').value||'').trim(),
+    zip:(document.querySelector('#checkout-addr-zip').value||'').trim(),
+    country:(document.querySelector('#checkout-addr-country').value||'').trim()
+  };
+}
+// Compared case- and whitespace-insensitively so trivial differences in how the
+// same address was typed don't count as a new one.
+function addressKey(a){
+  if(!a)return '';
+  return ADDRESS_FIELDS.map(function(f){
+    return String(a[f]||'').trim().toLowerCase().replace(/\s+/g,' ');
+  }).join('|');
+}
+function addressComplete(a){
+  return ADDRESS_FIELDS.every(function(f){return !!String(a[f]||'').trim();});
+}
+
+function syncPrimaryPrompt(){
+  var prompt=document.querySelector('#primary-address-prompt');
+  var box=document.querySelector('#make-primary-address');
+  var label=document.querySelector('#primary-address-label');
+  if(!prompt)return;
+
+  // Guests have no account to save an address to.
+  if(!currentUserEmail()){prompt.style.display='none';return;}
+
+  var current=formAddress();
+  if(!addressComplete(current)){prompt.style.display='none';return;}
+
+  var list=savedAddresses();
+  var key=addressKey(current);
+  var primary=list.filter(function(a){return a.isPrimary;})[0];
+
+  // Already the primary address — nothing to offer.
+  if(primary&&addressKey(primary)===key){
+    prompt.style.display='none';
+    box.checked=false;
+    return;
+  }
+
+  var known=list.some(function(a){return addressKey(a)===key;});
+  label.textContent=known
+    ? 'Would you like to make this address your primary one?'
+    : (list.length
+        ? 'Save this address to your account and make it your primary one?'
+        : 'Save this address to your account as your primary one?');
+  prompt.style.display='flex';
+}
+
+// Applies the choice: promotes a saved address, or saves a new one as primary.
+function applyPrimaryAddressChoice(){
+  var box=document.querySelector('#make-primary-address');
+  var prompt=document.querySelector('#primary-address-prompt');
+  if(!box||!box.checked||!prompt||prompt.style.display==='none')return;
+  if(!currentUserEmail())return;
+
+  var current=formAddress();
+  if(!addressComplete(current))return;
+
+  var list=savedAddresses();
+  var key=addressKey(current);
+  var matched=false;
+  list.forEach(function(a){
+    if(addressKey(a)===key){matched=true;a.isPrimary=true;}
+    else{a.isPrimary=false;}
+  });
+  if(!matched){
+    current.phone=(document.querySelector('#checkout-phone').value||'').trim();
+    current.isPrimary=true;
+    current.addedAt=new Date().toISOString();
+    list.push(current);
+  }
+  writeAddresses(list);
+}
+
 function saveOrderToAccount(order){
   var email=currentUserEmail();
   if(!email)return;
@@ -166,9 +268,74 @@ function saveOrderToAccount(order){
   localStorage.setItem(key,JSON.stringify(orders));
 }
 function showCheckoutErrors(messages){const box=document.querySelector('#checkout-errors');if(!messages.length){box.style.display='none';box.innerHTML='';return;}box.style.display='block';box.innerHTML='<b>Please fix the following:</b><ul style="margin:8px 0 0 20px">'+messages.map(m=>`<li>${m}</li>`).join('')+'</ul>';box.scrollIntoView({behavior:'smooth',block:'center'});}
-document.querySelector('#checkout-form').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const data=Object.fromEntries(new FormData(form).entries());const {cart,itemCount,subtotal,total}=currentCheckoutSummary();const errors=[];if(!cart.length)errors.push('Your cart is empty. Add products before checkout.');if(!data.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))errors.push('Enter a valid email address.');if(!data.name||data.name.trim().split(/\s+/).length<2)errors.push('Enter a first and last name.');if(!data.addrName||!data.addrName.trim())errors.push('Enter the full name for the shipping address.');if(!data.addrStreet||data.addrStreet.trim().length<4)errors.push('Enter a street address.');if(!data.addrCity||!data.addrCity.trim())errors.push('Enter a city.');if(!data.addrState||!data.addrState.trim())errors.push('Enter a state or province.');if(!data.addrZip||!data.addrZip.trim())errors.push('Enter a postal code.');if(!data.addrCountry||!data.addrCountry.trim())errors.push('Enter a country.');if(!document.querySelector('#checkout-ack').checked)errors.push('Confirm the research-use acknowledgment.');if(errors.length){showCheckoutErrors(errors);return;}const order={orderNumber:'KL-'+Date.now().toString().slice(-8),placedAt:new Date().toISOString(),shippingMethod:data.shippingMethod,paymentPreference:data.paymentPreference,shippingAddress:{name:data.addrName.trim(),street:data.addrStreet.trim(),city:data.addrCity.trim(),state:data.addrState.trim(),zip:data.addrZip.trim(),country:data.addrCountry.trim()},items:cart.map(item=>({slug:item.slug,name:KL_PRODUCTS[item.slug]?.name||item.name,size:item.size,qty:parseInt(item.qty,10)||0,unitPrice:itemPrice(item),lineTotal:itemPrice(item)*(parseInt(item.qty,10)||0)})),itemCount,subtotal,total};sessionStorage.setItem('knightLabsLastOrder',JSON.stringify(order));saveOrderToAccount(order);localStorage.removeItem('knightLabsCart');updateCartCount();window.location.href='order-confirmation.html';});
+document.querySelector('#checkout-form').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const data=Object.fromEntries(new FormData(form).entries());const {cart,itemCount,subtotal,total}=currentCheckoutSummary();const errors=[];if(!cart.length)errors.push('Your cart is empty. Add products before checkout.');if(!data.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))errors.push('Enter a valid email address.');if(!data.name||data.name.trim().split(/\s+/).length<2)errors.push('Enter a first and last name.');if(!data.addrName||!data.addrName.trim())errors.push('Enter the full name for the shipping address.');if(!data.addrStreet||data.addrStreet.trim().length<4)errors.push('Enter a street address.');if(!data.addrCity||!data.addrCity.trim())errors.push('Enter a city.');if(!data.addrState||!data.addrState.trim())errors.push('Enter a state or province.');if(!data.addrZip||!data.addrZip.trim())errors.push('Enter a postal code.');if(!data.addrCountry||!data.addrCountry.trim())errors.push('Enter a country.');if(!document.querySelector('#checkout-ack').checked)errors.push('Confirm the research-use acknowledgment.');if(errors.length){showCheckoutErrors(errors);return;}const payload={
+    email:data.email.trim(),
+    name:data.name.trim(),
+    phone:(data.phone||'').trim(),
+    shippingMethod:data.shippingMethod,
+    paymentPreference:data.paymentPreference,
+    shippingAddress:{name:data.addrName.trim(),street:data.addrStreet.trim(),city:data.addrCity.trim(),state:data.addrState.trim(),zip:data.addrZip.trim(),country:data.addrCountry.trim()},
+    items:cart.map(item=>({slug:item.slug,name:KL_PRODUCTS[item.slug]?.name||item.name,size:item.size,qty:parseInt(item.qty,10)||0,unitPrice:itemPrice(item)}))
+  };
+
+  const submitBtn=document.querySelector('#checkout-submit');
+  submitBtn.disabled=true;
+  const originalLabel=submitBtn.textContent;
+  submitBtn.textContent='Placing order\u2026';
+
+  // The server assigns the order number, stores the order so it can be viewed
+  // without an account, and emails the confirmation link.
+  fetch('/api/place-order',{
+    method:'POST',
+    headers:{'Content-Type':'application/json'},
+    body:JSON.stringify(payload)
+  }).then(res=>res.json().catch(()=>({})).then(body=>({status:res.status,body})))
+    .then(result=>{
+      if(!result.body||!result.body.ok){
+        const codes={
+          invalid_email:'Enter a valid email address.',
+          empty_cart:'Your cart is empty. Add products before checkout.',
+          too_many_items:'That is too many items for one order. Please split it.',
+          invalid_items:'Something is wrong with the items in your cart. Try removing and re-adding them.'
+        };
+        // The cart is deliberately left intact so nothing is lost on failure.
+        showCheckoutErrors([codes[result.body&&result.body.code]||'We could not place your order. Please try again.']);
+        submitBtn.disabled=false;
+        submitBtn.textContent=originalLabel;
+        return;
+      }
+      const order=result.body.order;
+      order.orderNumber=result.body.orderNumber;
+      order.viewUrl=result.body.viewUrl;
+      // Kept so the account Orders tab can fetch live status later.
+      order.token=result.body.token;
+      // Only promote the address after the order has actually gone through.
+      applyPrimaryAddressChoice();
+      order.delivery=result.body.delivery;
+      sessionStorage.setItem('knightLabsLastOrder',JSON.stringify(order));
+      saveOrderToAccount(order);
+      localStorage.removeItem('knightLabsCart');
+      updateCartCount();
+      window.location.href='order-confirmation.html';
+    })
+    .catch(()=>{
+      showCheckoutErrors(['Could not reach the server, so your order was not placed. Your cart has been kept \u2014 start the server with: python server.py']);
+      submitBtn.disabled=false;
+      submitBtn.textContent=originalLabel;
+    });
+});
 renderCheckout();
 initSavedAddresses();
+(function(){
+  ['#checkout-addr-name','#checkout-addr-street','#checkout-addr-city',
+   '#checkout-addr-state','#checkout-addr-zip','#checkout-addr-country'].forEach(function(sel){
+    var el=document.querySelector(sel);
+    if(el)el.addEventListener('input',syncPrimaryPrompt);
+  });
+  var saved=document.querySelector('#checkout-saved-address');
+  if(saved)saved.addEventListener('change',function(){setTimeout(syncPrimaryPrompt,0);});
+  syncPrimaryPrompt();
+})();
 (function(){
   var ack=document.querySelector('#checkout-ack');
   var submit=document.querySelector('#checkout-submit');
@@ -181,4 +348,5 @@ initSavedAddresses();
   syncSubmitState();
 })();
 </script><a class="floating-cart" href="cart.html" aria-label="View and edit cart">Cart <span class="cart-count" data-cart-count>0</span></a>  <script src="assets/compliance-gate.js" defer></script>
+  <script src="assets/analytics.js" defer></script>
 </body></html>

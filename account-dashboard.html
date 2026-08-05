@@ -52,6 +52,13 @@ body.dark-mode .bento-pill{background:linear-gradient(135deg,var(--gold2),var(--
 .action-tile.primary:hover{border-color:var(--gold)}
 @media(max-width:900px){.stat-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.action-grid{grid-template-columns:1fr}}
 @media(max-width:520px){.welcome-title{font-size:24px}.stat-value{font-size:25px}}
+.order-status{display:inline-block;padding:5px 12px;border-radius:999px;font-size:10px;font-weight:950;letter-spacing:.1em;text-transform:uppercase}
+.st-unpaid{background:rgba(229,83,75,.14);color:#b8342c;border:1px solid rgba(229,83,75,.42)}
+.st-paid{background:rgba(123,162,79,.18);color:#456d24;border:1px solid rgba(123,162,79,.45)}
+.st-way{background:rgba(212,175,55,.18);color:#8c6713;border:1px solid rgba(212,175,55,.5)}
+.st-delivered{background:rgba(120,120,120,.14);color:#57564f;border:1px solid rgba(120,120,120,.38)}
+.st-cancelled{background:rgba(120,120,120,.14);color:#57564f;border:1px solid rgba(120,120,120,.4);text-decoration:line-through}
+body.dark-mode .st-unpaid{color:#ef8078}body.dark-mode .st-paid{color:#a7cc7d}body.dark-mode .st-way{color:var(--gold2)}body.dark-mode .st-delivered,body.dark-mode .st-cancelled{color:#b4b2a9}
 .reset-message{margin-top:14px;font-weight:800;padding:12px 15px;border-radius:10px;font-size:13px;max-width:520px}
 .reset-message.success{color:#4d7a28;background:rgba(123,162,79,.14);border:1px solid rgba(123,162,79,.42)}
 .reset-message.error{color:#e5534b;background:rgba(229,83,75,.12);border:1px solid rgba(229,83,75,.42)}
@@ -150,7 +157,10 @@ body.dark-mode .reset-message.success{color:#a7cc7d}@media(max-width:820px){body
 
     <!-- Orders Section -->
     <section id="orders-section" style="display:none;">
-      <h2 style="margin-bottom:20px">Your Orders</h2>
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:20px">
+        <h2>Your Orders</h2>
+        <div id="ordersToolbar"></div>
+      </div>
       <div id="ordersList" class="addresses-list"></div>
     </section>
 
@@ -289,9 +299,49 @@ document.addEventListener('DOMContentLoaded',function(){
     if(!userEmail)return [];
     try{return JSON.parse(localStorage.getItem('knightLabsOrders_'+userEmail)||'[]');}catch(e){return [];}
   }
+  // Finished orders the customer may clear from their own list.
+  var CLEARABLE=['Delivered','Cancelled'];
+  function isClearable(order){return CLEARABLE.indexOf(order.status)>=0;}
+
+  function saveOrders(list){
+    if(!userEmail)return;
+    localStorage.setItem('knightLabsOrders_'+userEmail,JSON.stringify(list));
+  }
+
+  // Removing an order only hides it from this account's list. The order itself
+  // is kept on the server and its emailed link keeps working.
+  function clearOrders(numbers){
+    var drop={};
+    numbers.forEach(function(n){drop[n]=true;});
+    saveOrders(getOrders().filter(function(o){return !drop[o.orderNumber];}));
+    renderOrders();
+    renderDashboard();
+  }
+
+  function renderOrdersToolbar(orders){
+    var bar=document.getElementById('ordersToolbar');
+    var done=orders.filter(isClearable);
+    if(!done.length){bar.innerHTML='';return;}
+    bar.innerHTML='<button class="btn-small" id="clearDoneBtn">Clear '+done.length+' completed</button>';
+    document.getElementById('clearDoneBtn').addEventListener('click',function(){
+      // Two-step, so a stray click cannot wipe the list.
+      bar.innerHTML='<span style="font-size:13px;color:var(--muted);margin-right:10px">'
+        +'Remove '+done.length+' delivered/cancelled order'+(done.length===1?'':'s')+' from your list?</span>'
+        +'<button class="btn-small danger" id="clearYes">Yes, clear</button> '
+        +'<button class="btn-small" id="clearNo">Keep</button>';
+      document.getElementById('clearYes').addEventListener('click',function(){
+        clearOrders(done.map(function(o){return o.orderNumber;}));
+      });
+      document.getElementById('clearNo').addEventListener('click',function(){
+        renderOrdersToolbar(getOrders());
+      });
+    });
+  }
+
   function renderOrders(){
     var orders=getOrders();
     var list=document.getElementById('ordersList');
+    renderOrdersToolbar(orders);
     if(!orders.length){
       list.innerHTML='<div class="empty-state">No orders yet.<br><a href="supply-categories.html">Start shopping</a></div>';
       return;
@@ -303,16 +353,92 @@ document.addEventListener('DOMContentLoaded',function(){
       }).join('');
       var addr=order.shippingAddress;
       var addrBlock=addr?'<p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6"><b style="color:var(--ink)">Ship to:</b> '+escapeHTML(addr.name)+', '+escapeHTML(addr.street)+', '+escapeHTML(addr.city)+', '+escapeHTML(addr.state)+' '+escapeHTML(addr.zip)+', '+escapeHTML(addr.country)+'</p>':'';
-      return '<div class="address-card">'
-        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px">'
+      var status=order.status||'Unpaid';
+      var linkToken=tokenFor(order);
+      var actions=[];
+      if(order.orderNumber&&linkToken){
+        actions.push('<a class="btn-small" href="order.html?order='+encodeURIComponent(order.orderNumber)
+          +'&token='+encodeURIComponent(linkToken)+'">View order</a>');
+      }
+      if(isClearable(order)){
+        actions.push('<button class="btn-small" data-clear-order="'+escapeHTML(order.orderNumber||'')+'">Clear</button>');
+      }
+      var viewLink=actions.length
+        ? '<div style="display:flex;gap:9px;margin-top:16px;flex-wrap:wrap">'+actions.join('')+'</div>'
+        : '';
+      return '<div class="address-card" data-order-card="'+escapeHTML(order.orderNumber||'')+'">'
+        +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:8px">'
         +'<h3 style="font-size:16px">Order '+escapeHTML(order.orderNumber)+'</h3>'
         +'<span style="font-size:13px;color:var(--muted)">'+escapeHTML(formatOrderDate(order.placedAt))+'</span></div>'
+        +'<div style="margin-bottom:12px"><span class="order-status '+statusClass(status)+'" data-status-for="'+escapeHTML(order.orderNumber||'')+'">'+escapeHTML(status)+'</span></div>'
         +'<p style="color:var(--muted);font-size:13px;margin-bottom:12px">'+(order.itemCount||0)+' item'+((order.itemCount||0)===1?'':'s')+' · '+escapeHTML(order.shippingMethod||'Coordinate directly')+'</p>'
         +items
         +'<div style="display:flex;justify-content:space-between;gap:16px;padding-top:12px;margin-top:4px;border-top:2px solid var(--line)"><b>Total</b><b>'+money(order.total)+'</b></div>'
         +addrBlock
+        +viewLink
         +'</div>';
     }).join('');
+
+    list.querySelectorAll('[data-clear-order]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        clearOrders([this.dataset.clearOrder]);
+      });
+    });
+
+    refreshOrderStatuses(orders);
+  }
+
+  function statusClass(status){
+    return {'Unpaid':'st-unpaid','Paid':'st-paid','On its way':'st-way',
+            'Delivered':'st-delivered','Cancelled':'st-cancelled'}[status]||'st-unpaid';
+  }
+
+  // Orders placed before the token was stored explicitly still have their
+  // viewUrl, which carries the token as a query parameter.
+  function tokenFor(order){
+    if(order.token)return order.token;
+    var url=order.viewUrl||'';
+    var match=url.match(/[?&]token=([^&]+)/);
+    return match?decodeURIComponent(match[1]):'';
+  }
+
+  // The stored records are a snapshot from checkout, so status can be stale.
+  // Each order carries its own lookup token, so fetch the live value.
+  function refreshOrderStatuses(orders){
+    orders.forEach(function(order){
+      var token=tokenFor(order);
+      if(!order.orderNumber||!token)return;
+      fetch('/api/order-lookup',{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body:JSON.stringify({orderNumber:order.orderNumber,token:token})
+      }).then(function(res){return res.json().catch(function(){return {};});})
+        .then(function(data){
+          if(!data.ok||!data.order)return;
+          var live=data.order.status||'Unpaid';
+          var pill=document.querySelector('[data-status-for="'+order.orderNumber+'"]');
+          if(pill){
+            pill.textContent=live;
+            pill.className='order-status '+statusClass(live);
+          }
+          // Persist status and backfill the token so future loads are direct.
+          var list=getOrders();
+          var changed=false;
+          list.forEach(function(o){
+            if(o.orderNumber!==order.orderNumber)return;
+            if(o.status!==live){o.status=live;changed=true;}
+            if(!o.token&&token){o.token=token;changed=true;}
+          });
+          if(changed&&userEmail){
+            localStorage.setItem('knightLabsOrders_'+userEmail,JSON.stringify(list));
+          }
+          // A status that just became Delivered or Cancelled needs its Clear
+          // button. Re-render once — the second pass finds nothing changed.
+          if(live!==order.status&&CLEARABLE.indexOf(live)>=0){
+            renderOrders();
+          }
+        }).catch(function(){/* offline — the stored status stays on screen */});
+    });
   }
 
   // Dashboard summary — every figure comes from the account's own stored data
@@ -711,4 +837,5 @@ document.addEventListener('DOMContentLoaded',function(){
   function readCart(){try{return JSON.parse(localStorage.getItem('knightLabsCart')||'[]')}catch(e){return []}}
 });
 </script>
+  <script src="assets/analytics.js" defer></script>
 </body></html>

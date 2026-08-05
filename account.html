@@ -221,6 +221,13 @@ document.addEventListener('DOMContentLoaded',function(){
     callApi('/api/signin',{email:email,password:password}).then(function(result){
       var data=result.data;
       if(data.ok){
+        // Admin sign-in bypasses the storefront entirely.
+        if(data.admin&&data.adminToken){
+          sessionStorage.setItem('knightLabsAdmin',JSON.stringify({email:email,token:data.adminToken}));
+          showMessage('Admin sign-in detected. Opening the dashboard\u2026','success',signInMessage);
+          setTimeout(function(){window.location.href='admin.html';},400);
+          return;
+        }
         // Save current cart to user's saved cart
         var currentCart=readCart();
         if(currentCart.length>0){
@@ -347,4 +354,5 @@ document.addEventListener('DOMContentLoaded',function(){
 })();
 </script>
 <a class="floating-cart" href="cart.html" aria-label="View and edit cart">Cart <span class="cart-count" data-cart-count>0</span></a>  <script src="assets/compliance-gate.js" defer></script>
+  <script src="assets/analytics.js" defer></script>
 </body></html>
