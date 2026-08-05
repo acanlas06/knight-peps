@@ -1,5 +1,18 @@
 <!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Knight Labs — Account Dashboard</title><meta name="description" content="Manage your Knight Labs account."><link rel="icon" type="image/png" href="assets/knight-labs-crest-icon-transparent.png"><link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700;900&display=swap" rel="stylesheet"><style>
-*{box-sizing:border-box;margin:0;padding:0}:root{--black:#030303;--night:#080805;--gold:#d4af37;--gold2:#fff0a8;--gold3:#8c6713;--cream:#fff7df;--paper:#f5efe5;--ink:#11100b;--muted:#716958;--line:#dac89a;--shadow:0 28px 80px rgba(20,15,3,.14);--radius:26px;--light-bg:#ffffff;--light-sidebar:#f8f7f5;--dark-bg:#0a0907;--dark-sidebar:#111010}html{scroll-behavior:smooth}body{font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);line-height:1.42;-webkit-font-smoothing:antialiased;display:grid;grid-template-columns:240px 1fr;min-height:100vh}body.dark-mode{--paper:#0a0907;--ink:#f5efe5;--muted:#b8b0a8;--line:#3d3a35}.sidebar{background:var(--light-sidebar);border-right:1px solid var(--line);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}.sidebar.dark-mode{background:var(--dark-sidebar)}.sidebar-logo{display:flex;align-items:center;gap:12px;padding:0 18px 24px;font-weight:950;border-bottom:1px solid var(--line);margin-bottom:24px;transition:.2s}.sidebar-logo:hover{opacity:.8;transform:translateX(-2px)}.sidebar-logo img{width:40px;height:40px}.sidebar-nav{display:flex;flex-direction:column;gap:0;height:100%}.sidebar-link{display:flex;align-items:center;gap:12px;padding:14px 18px;color:var(--ink);text-decoration:none;border-left:3px solid transparent;transition:.2s}.sidebar-link:hover{background:rgba(212,175,55,.08);color:var(--gold3)}.sidebar-link.active{border-left-color:var(--gold);background:rgba(212,175,55,.12);color:var(--gold3);font-weight:700}.sidebar-link.logout{color:#d32f2f}.sidebar-link.logout:hover{background:rgba(211,47,47,.08)}.main-content{background:var(--paper);padding:0}.header-bar{background:linear-gradient(135deg,#1565c0,#1976d2);color:white;padding:18px 32px;border-bottom:1px solid rgba(0,0,0,.1)}.header-bar p{font-size:15px;line-height:1.5;max-width:1000px}.dashboard-content{padding:32px}.notification{background:#1565c0;color:white;padding:18px 24px;border-radius:8px;margin-bottom:28px;font-size:14px}.welcome-section{margin-bottom:32px}.greeting{font-size:18px;color:var(--ink);margin-bottom:8px}.greeting a{color:var(--gold);text-decoration:none}.greeting a:hover{text-decoration:underline}.description{color:var(--muted);font-size:15px;line-height:1.6;max-width:800px}.description a{color:var(--gold);text-decoration:none}.description a:hover{text-decoration:underline}.display-section{padding:14px 18px;border-top:1px solid var(--line);margin-top:auto}.display-label{font-size:12px;font-weight:950;text-transform:uppercase;color:var(--muted);letter-spacing:.1em;display:block;margin-bottom:12px}.theme-toggle{width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:10px 14px;font-weight:950;cursor:pointer;font-size:14px;color:#080604;box-shadow:0 4px 12px rgba(212,175,55,.16);transition:.2s}.theme-toggle:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(212,175,55,.22)}.address-form{border:1px solid var(--line);border-radius:12px;padding:24px;background:var(--light-sidebar);margin-bottom:24px}.address-form.dark-mode{background:var(--dark-sidebar)}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.form-row.full{grid-template-columns:1fr}.form-group{display:flex;flex-direction:column}.form-group label{font-weight:700;margin-bottom:8px;font-size:14px}.form-group input{border:1px solid var(--line);border-radius:8px;padding:12px;font:inherit;background:var(--light-bg)}.form-group input.dark-mode{background:var(--dark-sidebar)}.form-group.dark-mode input{background:var(--dark-sidebar);border-color:#3d3a35}.form-actions{display:flex;gap:12px;margin-top:20px}.btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:12px 24px;font-weight:950;cursor:pointer;color:#080604}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(212,175,55,.22)}.btn-secondary{background:transparent;border:1px solid var(--line);border-radius:8px;padding:12px 24px;font-weight:700;cursor:pointer;color:var(--ink)}.btn-secondary:hover{background:rgba(212,175,55,.08)}.addresses-list{display:grid;gap:16px}.address-card{border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--light-sidebar)}.address-card.dark-mode{background:var(--dark-sidebar)}.address-card h3{margin-bottom:12px;font-size:16px}.address-card p{color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px}.address-card-actions{display:flex;gap:10px;margin-top:16px}.btn-small{background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)}.btn-small:hover{background:rgba(212,175,55,.08)}.btn-small.danger{color:#d32f2f;border-color:#d32f2f}.btn-small.danger:hover{background:rgba(211,47,47,.08)}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
+*{box-sizing:border-box;margin:0;padding:0}:root{--black:#030303;--night:#080805;--gold:#d4af37;--gold2:#fff0a8;--gold3:#8c6713;--cream:#fff7df;--paper:#f5efe5;--ink:#11100b;--muted:#716958;--line:#dac89a;--shadow:0 28px 80px rgba(20,15,3,.14);--radius:26px;--light-bg:#ffffff;--light-sidebar:#f8f7f5;--dark-bg:#0a0907;--dark-sidebar:#111010;--surface:#fffdf8;--surface-2:#fff8ea;--input-bg:#ffffff;--sidebar-bg:#f8f7f5;--accent-soft:rgba(212,175,55,.10);--card-shadow:0 10px 30px rgba(20,15,3,.07)}html{scroll-behavior:smooth}body{font-family:'DM Sans',system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;background:var(--paper);color:var(--ink);line-height:1.42;-webkit-font-smoothing:antialiased;display:grid;grid-template-columns:240px 1fr;min-height:100vh}body.dark-mode{--paper:#0a0907;--ink:#f5efe5;--muted:#a49c92;--line:#332f29;--surface:#14130f;--surface-2:#1b1914;--input-bg:#0f0e0b;--sidebar-bg:#100f0c;--accent-soft:rgba(212,175,55,.13);--card-shadow:0 10px 30px rgba(0,0,0,.32)}.sidebar{background:var(--sidebar-bg);border-right:1px solid var(--line);padding:24px 0;position:sticky;top:0;height:100vh;overflow-y:auto}.sidebar-logo{display:flex;align-items:center;gap:12px;padding:0 18px 24px;font-weight:950;border-bottom:1px solid var(--line);margin-bottom:24px;transition:.2s}.sidebar-logo:hover{opacity:.8;transform:translateX(-2px)}.sidebar-logo img{width:40px;height:40px}.sidebar-nav{display:flex;flex-direction:column;gap:0;height:100%}.sidebar-link{display:flex;align-items:center;gap:12px;padding:14px 18px;color:var(--ink);text-decoration:none;border-left:3px solid transparent;transition:.2s}.sidebar-link:hover{background:rgba(212,175,55,.08);color:var(--gold3)}.sidebar-link.active{border-left-color:var(--gold);background:rgba(212,175,55,.12);color:var(--gold3);font-weight:700}.sidebar-link.logout{color:#d32f2f}.sidebar-link.logout:hover{background:rgba(211,47,47,.08)}.main-content{background:var(--paper);padding:0}.header-bar{background:linear-gradient(135deg,#11100b,#2a2109);color:var(--cream);padding:18px 32px;border-bottom:1px solid rgba(212,175,55,.28)}.header-bar p{font-size:15px;line-height:1.5;max-width:1000px}.dashboard-content{padding:32px}.notification{background:var(--surface-2);border:1px solid var(--line);border-left:3px solid var(--gold);color:var(--ink);padding:16px 22px;border-radius:10px;margin-bottom:28px;font-size:14px}.welcome-section{margin-bottom:32px}.greeting{font-size:18px;color:var(--ink);margin-bottom:8px}.greeting a{color:var(--gold);text-decoration:none}.greeting a:hover{text-decoration:underline}.description{color:var(--muted);font-size:15px;line-height:1.6;max-width:800px}.description a{color:var(--gold);text-decoration:none}.description a:hover{text-decoration:underline}.display-section{padding:14px 18px;border-top:1px solid var(--line);margin-top:auto}.display-label{font-size:12px;font-weight:950;text-transform:uppercase;color:var(--muted);letter-spacing:.1em;display:block;margin-bottom:12px}.theme-toggle{width:100%;background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:8px;padding:10px 14px;font-weight:950;cursor:pointer;font-size:14px;color:#080604;box-shadow:0 4px 12px rgba(212,175,55,.16);transition:.2s}.theme-toggle:hover{transform:translateY(-1px);box-shadow:0 6px 16px rgba(212,175,55,.22)}.address-form{border:1px solid var(--line);border-radius:16px;padding:26px;background:var(--surface);margin-bottom:26px;box-shadow:var(--card-shadow)}.address-form h3{font-size:15px;font-weight:950;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:22px}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:16px}.form-row.full{grid-template-columns:1fr}.form-group{display:flex;flex-direction:column}.form-group label{font-weight:700;margin-bottom:8px;font-size:13px;color:var(--muted)}.form-group input{border:1px solid var(--line);border-radius:9px;padding:12px 13px;font:inherit;background:var(--input-bg);color:var(--ink);transition:border-color .15s,box-shadow .15s}.form-group input::placeholder{color:var(--muted);opacity:.6}.form-group input:focus{outline:none;border-color:var(--gold);box-shadow:0 0 0 3px var(--accent-soft)}
+.form-actions{display:flex;gap:12px;margin-top:22px}.btn-primary{background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:9px;padding:12px 24px;font-weight:950;cursor:pointer;color:#080604;transition:.18s}.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(212,175,55,.28)}.btn-secondary{background:transparent;border:1px solid var(--line);border-radius:9px;padding:12px 24px;font-weight:700;cursor:pointer;color:var(--ink);transition:.18s}.btn-secondary:hover{background:var(--accent-soft);border-color:var(--gold3)}
+.addresses-list{display:grid;gap:16px}
+.address-card{position:relative;border:1px solid var(--line);border-radius:16px;padding:22px 24px;background:var(--surface);box-shadow:var(--card-shadow);transition:border-color .18s,transform .18s}.address-card:hover{border-color:var(--gold3);transform:translateY(-2px)}
+.address-card.is-primary{border-color:var(--gold);background:linear-gradient(180deg,var(--surface),var(--surface-2))}.address-card.is-primary:before{content:"";position:absolute;left:0;top:18px;bottom:18px;width:3px;border-radius:0 3px 3px 0;background:linear-gradient(180deg,var(--gold2),var(--gold))}
+.address-card-head{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px}.address-card h3{font-size:17px;letter-spacing:-.02em}
+.primary-badge{display:inline-block;padding:4px 10px;border-radius:999px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#080604;font-size:10px;font-weight:950;letter-spacing:.1em;text-transform:uppercase}
+.address-card p{color:var(--muted);font-size:14px;line-height:1.65}.address-card .addr-phone{margin-top:10px;font-size:13px;opacity:.85}
+.address-card-actions{display:flex;gap:9px;margin-top:18px;padding-top:16px;border-top:1px solid var(--line);flex-wrap:wrap}
+.btn-small{background:transparent;border:1px solid var(--line);border-radius:7px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink);transition:.15s}.btn-small:hover{background:var(--accent-soft);border-color:var(--gold3)}.btn-small.star:hover{color:var(--gold3)}.btn-small.danger{color:#e5534b;border-color:rgba(229,83,75,.45)}.btn-small.danger:hover{background:rgba(229,83,75,.12);border-color:#e5534b}
+.empty-state{border:1px dashed var(--line);border-radius:16px;padding:30px;text-align:center;color:var(--muted);background:var(--surface)}.empty-state a{color:var(--gold);font-weight:700}
+.wishlist-row{display:flex;gap:20px;align-items:flex-start}.wishlist-thumb{width:64px;height:84px;object-fit:contain;flex:0 0 auto;filter:drop-shadow(0 10px 16px rgba(20,15,3,.18))}.wishlist-body{flex:1;min-width:0}.wishlist-price{font-size:14px;font-weight:950;color:var(--gold3)}body.dark-mode .wishlist-price{color:var(--gold)}
+.address-card-actions a.btn-small{display:inline-flex;align-items:center;text-decoration:none}
+@media(max-width:520px){.wishlist-row{gap:14px}.wishlist-thumb{width:48px;height:64px}}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
 </style>
 </head><body>
 
@@ -131,7 +144,7 @@
       <div style="max-width:600px">
         <div style="margin-bottom:24px">
           <label style="display:block;font-weight:700;margin-bottom:8px">Email Address</label>
-          <input type="email" id="accountEmail" readonly style="width:100%;border:1px solid var(--line);border-radius:12px;padding:12px;background:var(--light-sidebar);cursor:not-allowed">
+          <input type="email" id="accountEmail" readonly style="width:100%;border:1px solid var(--line);border-radius:9px;padding:12px;background:var(--surface-2);color:var(--ink);cursor:not-allowed">
         </div>
         <div style="margin-bottom:24px">
           <label style="display:block;font-weight:700;margin-bottom:8px">Password</label>
@@ -143,7 +156,7 @@
     <!-- Wishlist Section -->
     <section id="wishlist-section" style="display:none;">
       <h2 style="margin-bottom:20px">Wishlist</h2>
-      <p class="description">Your wishlist is empty. <a href="supply-categories.html">Browse products</a></p>
+      <div id="wishlistList" class="addresses-list"></div>
     </section>
   </div>
 </main>
@@ -174,9 +187,9 @@ document.addEventListener('DOMContentLoaded',function(){
   var isDarkMode=localStorage.getItem('knightLabsDarkMode')==='true';
 
   function applyTheme(dark){
+    // All theming flows from CSS custom properties on <body>, so every
+    // surface, border and input follows automatically.
     document.body.classList.toggle('dark-mode',dark);
-    document.querySelector('.sidebar').classList.toggle('dark-mode',dark);
-    document.querySelectorAll('.address-form, .address-card, .form-group input').forEach(el=>el.classList.toggle('dark-mode',dark));
     themeToggle.textContent=dark?'☀️ Light Mode':'🌙 Dark Mode';
     localStorage.setItem('knightLabsDarkMode',String(dark));
   }
@@ -203,7 +216,7 @@ document.addEventListener('DOMContentLoaded',function(){
     var orders=getOrders();
     var list=document.getElementById('ordersList');
     if(!orders.length){
-      list.innerHTML='<p class="description">No orders yet. <a href="supply-categories.html" style="color:var(--gold)">Start shopping</a></p>';
+      list.innerHTML='<div class="empty-state">No orders yet.<br><a href="supply-categories.html">Start shopping</a></div>';
       return;
     }
     list.innerHTML=orders.map(function(order){
@@ -213,7 +226,7 @@ document.addEventListener('DOMContentLoaded',function(){
       }).join('');
       var addr=order.shippingAddress;
       var addrBlock=addr?'<p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6"><b style="color:var(--ink)">Ship to:</b> '+escapeHTML(addr.name)+', '+escapeHTML(addr.street)+', '+escapeHTML(addr.city)+', '+escapeHTML(addr.state)+' '+escapeHTML(addr.zip)+', '+escapeHTML(addr.country)+'</p>':'';
-      return '<div class="address-card" style="border:1px solid var(--line);border-radius:12px;padding:20px;background:var(--light-sidebar)">'
+      return '<div class="address-card">'
         +'<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:6px">'
         +'<h3 style="font-size:16px">Order '+escapeHTML(order.orderNumber)+'</h3>'
         +'<span style="font-size:13px;color:var(--muted)">'+escapeHTML(formatOrderDate(order.placedAt))+'</span></div>'
@@ -223,6 +236,61 @@ document.addEventListener('DOMContentLoaded',function(){
         +addrBlock
         +'</div>';
     }).join('');
+  }
+
+  // Wishlist
+  const KL_PRICES={"retatrutide":{"10mg":75,"20mg":140,"30mg":180},"tirzepatide":{"10mg":60,"20mg":80,"30mg":100},"semaglutide":{"5mg":35,"10mg":50},"bpc-157":{"10mg":45},"tb500":{"10mg":50},"bpc-157-tb500-blend":{"5mg + 5mg":89,"10mg + 10mg":149},"cjc-1295-without-dac-ipamorelin":{"5mg + 5mg":99,"10mg + 10mg":169},"ipamorelin":{"5mg":49,"10mg":79},"cjc-1295-without-dac-mod-grf-1-29":{"2mg":45,"5mg":79},"nad":{"500mg":55},"glutathione":{"600mg":69,"1200mg":119},"epithalon":{"10mg":59,"50mg":199},"semax":{"10mg":45},"selank":{"10mg":45},"ghk-cu":{"50mg":40}};
+  function priceRange(slug){
+    var sizes=KL_PRICES[slug];
+    if(!sizes)return '';
+    var vals=Object.keys(sizes).map(function(k){return sizes[k];});
+    var lo=Math.min.apply(null,vals),hi=Math.max.apply(null,vals);
+    return lo===hi?money(lo):money(lo)+' – '+money(hi);
+  }
+  function getWishlist(){
+    if(!userEmail)return [];
+    try{
+      var list=JSON.parse(localStorage.getItem('knightLabsWishlist_'+userEmail)||'[]');
+      return Array.isArray(list)?list:[];
+    }catch(e){return [];}
+  }
+  function saveWishlist(list){
+    if(!userEmail)return;
+    localStorage.setItem('knightLabsWishlist_'+userEmail,JSON.stringify(list));
+  }
+  function renderWishlist(){
+    var list=getWishlist();
+    var root=document.getElementById('wishlistList');
+    if(!list.length){
+      root.innerHTML='<div class="empty-state">Your wishlist is empty.<br>Tap the ♡ on any product to save it here. <a href="supply-categories.html">Browse products</a></div>';
+      return;
+    }
+    root.innerHTML=list.map(function(item,idx){
+      var name=KL_PRODUCTS[item.slug]?KL_PRODUCTS[item.slug].name:(item.name||item.slug);
+      var sizes=KL_PRODUCTS[item.slug]?KL_PRODUCTS[item.slug].sizes.join(' · '):'';
+      var price=priceRange(item.slug);
+      var added=item.addedAt?formatOrderDate(item.addedAt):'';
+      return '<div class="address-card">'
+        +'<div class="wishlist-row">'
+        +'<img src="assets/knight-labs-vial.png" alt="" class="wishlist-thumb">'
+        +'<div class="wishlist-body">'
+        +'<div class="address-card-head"><h3>'+escapeHTML(name)+'</h3>'
+        +(price?'<span class="wishlist-price">'+price+'</span>':'')+'</div>'
+        +(sizes?'<p>'+escapeHTML(sizes)+'</p>':'')
+        +(added?'<p class="addr-phone">Saved '+escapeHTML(added)+'</p>':'')
+        +'<div class="address-card-actions">'
+        +'<a class="btn-small" href="product-'+encodeURIComponent(item.slug)+'.html">View product</a>'
+        +'<button class="btn-small danger" data-wl-remove="'+idx+'">Remove</button>'
+        +'</div></div></div></div>';
+    }).join('');
+    root.querySelectorAll('[data-wl-remove]').forEach(function(btn){
+      btn.addEventListener('click',function(){
+        var list=getWishlist();
+        list.splice(parseInt(this.dataset.wlRemove,10),1);
+        saveWishlist(list);
+        renderWishlist();
+      });
+    });
   }
 
   // Address management functions
@@ -242,15 +310,24 @@ document.addEventListener('DOMContentLoaded',function(){
     var addresses=getAddresses();
     var list=document.getElementById('addressesList');
     if(addresses.length===0){
-      list.innerHTML='<p class="description">No addresses saved yet.</p>';
+      list.innerHTML='<div class="empty-state">No addresses saved yet.<br>Add one below to use it at checkout.</div>';
       return;
     }
     list.innerHTML=addresses.map(function(addr,idx){
       var isPrimary=!!addr.isPrimary;
-      var badge=isPrimary?'<span style="display:inline-block;margin-left:10px;padding:3px 10px;border-radius:999px;background:linear-gradient(135deg,var(--gold2),var(--gold));color:#080604;font-size:11px;font-weight:950;letter-spacing:.06em;text-transform:uppercase;vertical-align:middle">Primary</span>':'';
-      var primaryBtn=isPrimary?'':'<button class="btn-small" data-primary="'+idx+'" style="background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)">Make Primary</button>';
-      var cardBorder=isPrimary?'2px solid var(--gold)':'1px solid var(--line)';
-      return '<div class="address-card" style="border:'+cardBorder+';border-radius:12px;padding:20px;background:var(--light-sidebar);"><h3 style="margin-bottom:12px;font-size:16px">'+addr.name+badge+'</h3><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.street+'</p><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.city+', '+addr.state+' '+addr.zip+'</p><p style="color:var(--muted);font-size:14px;line-height:1.6;margin-bottom:4px">'+addr.country+'</p><p style="margin-top:8px;font-size:13px;color:var(--muted)">'+addr.phone+'</p><div class="address-card-actions" style="display:flex;gap:10px;margin-top:16px;flex-wrap:wrap">'+primaryBtn+'<button class="btn-small" data-edit="'+idx+'" style="background:transparent;border:1px solid var(--line);border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:var(--ink)">Edit</button><button class="btn-small danger" data-remove="'+idx+'" style="background:transparent;border:1px solid #d32f2f;border-radius:6px;padding:8px 14px;font-size:13px;font-weight:700;cursor:pointer;color:#d32f2f">Remove</button></div></div>';
+      var badge=isPrimary?'<span class="primary-badge">Primary</span>':'';
+      var primaryBtn=isPrimary?'':'<button class="btn-small star" data-primary="'+idx+'">☆ Make Primary</button>';
+      var phone=addr.phone?'<p class="addr-phone">'+escapeHTML(addr.phone)+'</p>':'';
+      return '<div class="address-card'+(isPrimary?' is-primary':'')+'">'
+        +'<div class="address-card-head"><h3>'+escapeHTML(addr.name)+'</h3>'+badge+'</div>'
+        +'<p>'+escapeHTML(addr.street)+'</p>'
+        +'<p>'+escapeHTML(addr.city)+', '+escapeHTML(addr.state)+' '+escapeHTML(addr.zip)+'</p>'
+        +'<p>'+escapeHTML(addr.country)+'</p>'
+        +phone
+        +'<div class="address-card-actions">'+primaryBtn
+        +'<button class="btn-small" data-edit="'+idx+'">Edit</button>'
+        +'<button class="btn-small danger" data-remove="'+idx+'">Remove</button></div>'
+        +'</div>';
     }).join('');
     // Make primary
     document.querySelectorAll('[data-primary]').forEach(function(btn){
@@ -358,6 +435,36 @@ document.addEventListener('DOMContentLoaded',function(){
 
   // Sidebar navigation
   var sidebarLinks=document.querySelectorAll('.sidebar-link');
+
+  function activateSection(section,updateHash){
+    var target=document.getElementById(section+'-section');
+    if(!target)return false;
+
+    // Hide all sections, show the selected one
+    document.querySelectorAll('#dashboardContent > section').forEach(function(s){s.style.display='none';});
+    target.style.display='block';
+
+    // Update active link
+    sidebarLinks.forEach(function(l){
+      l.classList.toggle('active',l.dataset.section===section);
+    });
+
+    // Render section data on demand
+    if(section==='addresses'){
+      renderAddresses();
+    }else if(section==='orders'){
+      renderOrders();
+    }else if(section==='wishlist'){
+      renderWishlist();
+    }
+
+    // Keep the URL in sync so the tab survives a refresh and can be linked to
+    if(updateHash!==false&&window.history&&history.replaceState){
+      history.replaceState(null,'','#'+section);
+    }
+    return true;
+  }
+
   sidebarLinks.forEach(function(link){
     link.addEventListener('click',function(e){
       if(this.id==='logoutBtn'){
@@ -368,23 +475,18 @@ document.addEventListener('DOMContentLoaded',function(){
       var section=this.dataset.section;
       if(!section)return;
       e.preventDefault();
-
-      // Hide all sections
-      document.querySelectorAll('#dashboardContent > section').forEach(s=>s.style.display='none');
-      // Show selected section
-      document.getElementById(section+'-section').style.display='block';
-      // Update active link
-      sidebarLinks.forEach(l=>l.classList.remove('active'));
-      this.classList.add('active');
-
-      // Render section data on demand
-      if(section==='addresses'){
-        renderAddresses();
-      }else if(section==='orders'){
-        renderOrders();
-      }
+      activateSection(section);
     });
   });
+
+  // Deep links: account-dashboard.html#wishlist opens straight to that tab
+  function openFromHash(updateHash){
+    var section=(location.hash||'').replace(/^#/,'');
+    if(!section||section==='logout')return false;
+    return activateSection(section,updateHash);
+  }
+  openFromHash(false);
+  window.addEventListener('hashchange',function(){openFromHash(false);});
 
   // In-content links that jump to a sidebar section
   document.querySelectorAll('#dashboardContent a[href^="#"]').forEach(function(link){
