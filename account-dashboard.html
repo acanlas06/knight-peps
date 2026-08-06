@@ -353,7 +353,7 @@ document.addEventListener('DOMContentLoaded',function(){
       }).join('');
       var addr=order.shippingAddress;
       var addrBlock=addr?'<p style="margin-top:14px;color:var(--muted);font-size:13px;line-height:1.6"><b style="color:var(--ink)">Ship to:</b> '+escapeHTML(addr.name)+', '+escapeHTML(addr.street)+', '+escapeHTML(addr.city)+', '+escapeHTML(addr.state)+' '+escapeHTML(addr.zip)+', '+escapeHTML(addr.country)+'</p>':'';
-      var status=order.status||'Unpaid';
+      var status=order.status||'Pending Zelle Payment';
       var linkToken=tokenFor(order);
       var actions=[];
       if(order.orderNumber&&linkToken){
@@ -389,7 +389,7 @@ document.addEventListener('DOMContentLoaded',function(){
   }
 
   function statusClass(status){
-    return {'Unpaid':'st-unpaid','Paid':'st-paid','On its way':'st-way',
+    return {'Pending Zelle Payment':'st-unpaid','Payment Reported':'st-way','Unpaid':'st-unpaid','Paid':'st-paid','On its way':'st-way',
             'Delivered':'st-delivered','Cancelled':'st-cancelled'}[status]||'st-unpaid';
   }
 
@@ -415,7 +415,7 @@ document.addEventListener('DOMContentLoaded',function(){
       }).then(function(res){return res.json().catch(function(){return {};});})
         .then(function(data){
           if(!data.ok||!data.order)return;
-          var live=data.order.status||'Unpaid';
+          var live=data.order.status||'Pending Zelle Payment';
           var pill=document.querySelector('[data-status-for="'+order.orderNumber+'"]');
           if(pill){
             pill.textContent=live;

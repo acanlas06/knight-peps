@@ -52,8 +52,8 @@ MAX_ORDER_ITEMS = 60
 MAX_ORDER_BODY_BYTES = 60_000
 
 # Order lifecycle. Order matters — the dashboard renders them in this sequence.
-ORDER_STATUSES = ["Unpaid", "Paid", "On its way", "Delivered"]
-DEFAULT_ORDER_STATUS = "Unpaid"
+ORDER_STATUSES = ["Pending Zelle Payment", "Payment Reported", "Paid", "On its way", "Delivered"]
+DEFAULT_ORDER_STATUS = "Pending Zelle Payment"
 # Cancelled sits outside the pipeline: it is terminal, excluded from revenue,
 # and reachable only through the dedicated cancel endpoint.
 CANCELLED_STATUS = "Cancelled"
@@ -133,6 +133,44 @@ def admin_session_email(token):
 # Copy smtp-config.example.json to smtp-config.json and fill it in. The file is
 # gitignored so the app password never reaches the repository.
 SMTP_CONFIG_FILE = os.path.join(ROOT, "smtp-config.json")
+ZELLE_CONFIG_FILE = os.path.join(ROOT, "zelle-config.json")
+
+
+def load_zelle_config():
+    """Public Zelle checkout instructions. zelle-config.json is gitignored.
+
+    Only the public recipient shown to customers belongs here — never bank
+    login details, account numbers, or private credentials.
+    """
+    file_config = {}
+    if os.path.exists(ZELLE_CONFIG_FILE):
+        try:
+            with open(ZELLE_CONFIG_FILE, "r", encoding="utf-8") as handle:
+                raw = handle.read().strip()
+            loaded = json.loads(raw) if raw else {}
+            if isinstance(loaded, dict):
+                file_config = {k: v for k, v in loaded.items() if not k.startswith("_")}
+        except (json.JSONDecodeError, OSError) as exc:
+            print(f"[zelle] Could not read zelle-config.json ({exc}) — using placeholder", flush=True)
+
+    def pick(key, default=""):
+        env = os.environ.get("KL_ZELLE_" + key.upper())
+        if env not in (None, ""):
+            return env
+        value = file_config.get(key)
+        return default if value in (None, "") else value
+
+    try:
+        hold_hours = int(pick("holdHours", "24"))
+    except (TypeError, ValueError):
+        hold_hours = 24
+
+    return {
+        "recipient": str(pick("recipient", "ZELLE_RECIPIENT_NOT_CONFIGURED")).strip(),
+        "businessName": str(pick("businessName", "Knight Labs")).strip(),
+        "holdHours": hold_hours,
+        "note": str(pick("note", "Include the exact memo code so we can match your payment."))[:240],
+    }
 
 
 def load_mail_config():
@@ -176,6 +214,7 @@ def load_mail_config():
 
 
 MAIL = load_mail_config()
+ZELLE = load_zelle_config()
 # Gmail (and most providers) reject a From: that isn't the authenticated user.
 if MAIL["host"] and MAIL["user"] and MAIL["from"] == "no-reply@knightlabs.example":
     MAIL["from"] = MAIL["user"]
@@ -367,7 +406,9 @@ def sanitise_order(payload):
         "customerName": clean_text(payload.get("name"), 120),
         "phone": clean_text(payload.get("phone"), 60),
         "shippingMethod": clean_text(payload.get("shippingMethod"), 80),
-        "paymentPreference": clean_text(payload.get("paymentPreference"), 80),
+        "paymentMethod": "Zelle",
+        "paymentPreference": "Zelle",
+        "paymentStatus": DEFAULT_ORDER_STATUS,
         "shippingAddress": address,
         "items": items,
         "itemCount": item_count,
@@ -873,7 +914,7 @@ def admin_stats():
         "cancelledValue": round(sum(float(r.get("total") or 0) for r in cancelled), 2),
         "grossRevenue": gross,
         "collectedRevenue": collected,
-        "unpaidRevenue": revenue_by_status.get("Unpaid", 0.0),
+        "unpaidRevenue": round(revenue_by_status.get("Pending Zelle Payment", 0.0) + revenue_by_status.get("Payment Reported", 0.0), 2),
         "unitsOrdered": units,
         "uniqueCustomers": len(customers),
         "averageOrderValue": round(gross / len(rows), 2) if rows else 0,
@@ -901,6 +942,14 @@ def create_order(payload):
         while number in orders:
             number = "KL-%05d" % (int(number.split("-")[1]) + 1)
         order["orderNumber"] = number
+        alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"
+        payment_code = "ZELLE-" + "".join(secrets.choice(alphabet) for _ in range(6))
+        order["zellePaymentCode"] = payment_code
+        order["zelleMemo"] = f"{number} {payment_code}"
+        order["zelleRecipient"] = ZELLE["recipient"]
+        order["zelleBusinessName"] = ZELLE["businessName"]
+        order["zelleHoldHours"] = ZELLE["holdHours"]
+        order["zelleNote"] = ZELLE["note"]
         # Only the digest is stored, so orders.json cannot be used to forge links.
         record = dict(order)
         record["token_hash"] = hash_token(token)
@@ -930,6 +979,38 @@ def find_order(number, token):
     return public, None
 
 
+def report_zelle_payment(number, token):
+    """Customer says they sent Zelle; admin must still reconcile manually."""
+    number = clean_text(number, 40)
+    token = clean_text(token, 200)
+    if not number or not token:
+        return None, "not_found"
+    now = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+    with _lock:
+        orders = load_orders()
+        record = orders.get(number)
+        if not record:
+            return None, "not_found"
+        stored = record.get("token_hash") or ""
+        if not stored or not hmac.compare_digest(stored, hash_token(token)):
+            return None, "not_found"
+        if record.get("status") == CANCELLED_STATUS:
+            return None, "order_cancelled"
+        if record.get("status") in ("Paid", "On its way", "Delivered"):
+            return {k: v for k, v in record.items() if k != "token_hash"}, None
+        record["status"] = "Payment Reported"
+        record["paymentStatus"] = "Payment Reported"
+        record["paymentReportedAt"] = now
+        history = record.get("statusHistory")
+        if not isinstance(history, list):
+            history = []
+        history.append({"status": "Payment Reported", "at": now, "by": "customer"})
+        record["statusHistory"] = history
+        orders[number] = record
+        save_orders(orders)
+    return {k: v for k, v in record.items() if k != "token_hash"}, None
+
+
 def build_order_email(order, link):
     message = EmailMessage()
     message["Subject"] = "Knight Labs order " + order["orderNumber"]
@@ -955,12 +1036,17 @@ def build_order_email(order, link):
         "View your order:\n%s\n\n"
         "Keep this link — it is the only way to view this order if you do not "
         "have an account.\n\n"
-        "No payment has been collected. Knight Labs will confirm availability "
-        "and the final total, then send payment instructions directly.\n\n"
+        "Zelle payment instructions:\n"
+        "  Amount: %s\n"
+        "  Recipient: %s\n"
+        "  Memo: %s\n"
+        "Your order stays pending until Knight Labs manually confirms receipt.\n\n"
         "For research and laboratory use only. Not intended for human or "
         "veterinary consumption.\n\n— Knight Labs\n"
         % (order["orderNumber"], order["placedAt"], "\n".join(lines),
-           fmt(order["total"]), address_text, link)
+           fmt(order["total"]), address_text, link, fmt(order["total"]),
+           order.get("zelleRecipient") or ZELLE["recipient"],
+           order.get("zelleMemo") or order.get("zellePaymentCode") or order["orderNumber"])
     )
 
     rows = "".join(
@@ -995,15 +1081,18 @@ def build_order_email(order, link):
         'View your order</a></p>'
         '<p style="color:#716958;font-size:12px;line-height:1.6">Keep this link — it is the only '
         'way to view this order if you do not have an account.</p>'
-        '<p style="color:#716958;font-size:12px;line-height:1.6">No payment has been collected. '
-        'Knight Labs will confirm availability and the final total, then send payment instructions '
-        'directly.</p>'
+        '<div style="margin:18px 0;padding:14px;border:1px dashed #dac89a;border-radius:12px;background:#fffaf0">'
+        '<strong>Zelle payment instructions</strong><br>'
+        'Amount: %s<br>Recipient: %s<br>Memo: <strong>%s</strong><br>'
+        '<span style="color:#716958;font-size:12px">Your order stays pending until Knight Labs manually confirms receipt.</span></div>'
         '<p style="color:#8c8377;font-size:11px;line-height:1.6;border-top:1px solid #eadbb2;'
         'padding-top:14px">For research and laboratory use only. Not intended for human or '
         'veterinary consumption.</p>'
         '</div></body></html>'
         % (html_escape(order["orderNumber"]), rows, fmt(order["total"]), address_html,
-           html_escape(link)),
+           html_escape(link), fmt(order["total"]),
+           html_escape(order.get("zelleRecipient") or ZELLE["recipient"]),
+           html_escape(order.get("zelleMemo") or order.get("zellePaymentCode") or order["orderNumber"])),
         subtype="html",
     )
     return message
@@ -1136,6 +1225,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._handle_place_order()
         elif self.path == "/api/order-lookup":
             self._handle_order_lookup()
+        elif self.path == "/api/report-zelle-payment":
+            self._handle_report_zelle_payment()
         elif self.path == "/api/admin/orders":
             self._handle_admin_orders()
         elif self.path == "/api/admin/order-status":
@@ -1297,6 +1388,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         order, error = find_order(data.get("orderNumber"), data.get("token"))
         if error:
             return self._send_json(200, {"ok": False, "code": error})
+        self._send_json(200, {"ok": True, "order": order})
+
+    def _handle_report_zelle_payment(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        order, error = report_zelle_payment(data.get("orderNumber"), data.get("token"))
+        if error:
+            return self._send_json(200, {"ok": False, "code": error})
+        print("[order] customer reported Zelle payment for %s" % order["orderNumber"], flush=True)
         self._send_json(200, {"ok": True, "order": order})
 
     def _base_url(self):

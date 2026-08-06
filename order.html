@@ -22,6 +22,7 @@ main{flex:1;padding:44px 0 70px}
 .order-no{font-size:24px;font-weight:950;letter-spacing:-.03em}
 .status-pill{background:linear-gradient(135deg,var(--gold2),var(--gold));color:#080604;font-size:11px;font-weight:950;letter-spacing:.1em;text-transform:uppercase;padding:6px 13px;border-radius:999px}
 .status-pill.s-unpaid{background:rgba(229,83,75,.14);color:#b8342c;border:1px solid rgba(229,83,75,.42)}
+.status-pill.s-reported{background:rgba(212,175,55,.18);color:#8c6713;border:1px solid rgba(212,175,55,.5)}
 .status-pill.s-paid{background:rgba(123,162,79,.18);color:#456d24;border:1px solid rgba(123,162,79,.45)}
 .status-pill.s-delivered{background:rgba(120,120,120,.14);color:#57564f;border:1px solid rgba(120,120,120,.35)}
 .progress{display:flex;gap:6px;margin-top:18px}
@@ -69,7 +70,7 @@ main{flex:1;padding:44px 0 70px}
             <div class="order-no" id="orderNo">—</div>
             <div class="meta" id="orderPlaced"></div>
           </div>
-          <span class="status-pill" id="orderStatus">Unpaid</span>
+          <span class="status-pill" id="orderStatus">Pending Zelle Payment</span>
         </div>
         <div class="progress" id="orderProgress" aria-hidden="true"></div>
         <div class="progress-label" id="orderProgressLabel"></div>
@@ -77,7 +78,7 @@ main{flex:1;padding:44px 0 70px}
         <div class="panel-head">Items</div>
         <div id="orderItems"></div>
         <div class="totals"><span>Total</span><span id="orderTotal">$0</span></div>
-        <div class="note">No payment has been collected on this website. Knight Labs will confirm availability and the final total, then send payment instructions directly.</div>
+        <div class="note" id="zelleBox">Zelle instructions loading…</div>
       </div>
 
       <div class="panel">
@@ -146,9 +147,9 @@ main{flex:1;padding:44px 0 70px}
 
     document.getElementById('orderNo').textContent=o.orderNumber;
     document.getElementById('orderPlaced').textContent=o.placedAt?longDate(o.placedAt):'';
-    var STATUSES=['Unpaid','Paid','On its way','Delivered'];
-    var STATUS_CLASS={'Unpaid':'s-unpaid','Paid':'s-paid','On its way':'','Delivered':'s-delivered','Cancelled':'s-cancelled'};
-    var status=o.status||'Unpaid';
+    var STATUSES=['Pending Zelle Payment','Payment Reported','Paid','On its way','Delivered'];
+    var STATUS_CLASS={'Pending Zelle Payment':'s-unpaid','Payment Reported':'s-reported','Unpaid':'s-unpaid','Paid':'s-paid','On its way':'','Delivered':'s-delivered','Cancelled':'s-cancelled'};
+    var status=o.status||'Pending Zelle Payment';
     var cancelled=status==='Cancelled';
     var pill=document.getElementById('orderStatus');
     pill.textContent=status;
@@ -170,7 +171,9 @@ main{flex:1;padding:44px 0 70px}
         return '<span class="'+(i<=reached?'done':'')+'" title="'+esc(s)+'"></span>';
       }).join('');
       var LABELS={
-        'Unpaid':'Awaiting payment. We will send payment instructions directly.',
+        'Pending Zelle Payment':'Awaiting Zelle payment. Send the exact memo code shown below.',
+        'Payment Reported':'You reported the Zelle payment. Knight Labs will manually confirm receipt.',
+        'Unpaid':'Awaiting Zelle payment. Send the exact memo code shown below.',
         'Paid':'Payment received. Your order is being prepared.',
         'On its way':'Your order is on its way.',
         'Delivered':'Delivered. Thanks for your order.'
@@ -193,8 +196,36 @@ main{flex:1;padding:44px 0 70px}
         +'<br>'+esc(a.city)+', '+esc(a.state)+' '+esc(a.zip)+'<br>'+esc(a.country));
     }
     if(o.shippingMethod)rows.push('<strong>Fulfillment</strong><br>'+esc(o.shippingMethod));
-    if(o.paymentPreference)rows.push('<strong>Payment</strong><br>'+esc(o.paymentPreference));
+    rows.push('<strong>Payment</strong><br>Zelle'+(o.paymentReportedAt?'<br>Reported sent: '+esc(longDate(o.paymentReportedAt)) : ''));
     document.getElementById('orderDetails').innerHTML=rows.join('<br><br>');
+
+    var zelle=document.getElementById('zelleBox');
+    var recipient=o.zelleRecipient||'ZELLE_RECIPIENT_NOT_CONFIGURED';
+    var memo=o.zelleMemo||((o.orderNumber||'')+' '+(o.zellePaymentCode||''));
+    if(cancelled){
+      zelle.innerHTML='This order is cancelled. No Zelle payment is due.';
+    }else if(status==='Paid'||status==='On its way'||status==='Delivered'){
+      zelle.innerHTML='Zelle payment has been confirmed for this order.';
+    }else{
+      zelle.innerHTML='<strong>Zelle payment instructions</strong><br>'
+        +'Amount: '+esc(money(o.total))+'<br>'
+        +'Recipient: '+esc(recipient)+'<br>'
+        +'Memo/code: <strong style="color:#8c6713;font-size:16px">'+esc(memo)+'</strong><br>'
+        +'<span style="display:block;margin-top:8px">After sending Zelle, use the button below. This reports payment sent but does not mark it paid until admin confirms receipt.</span>'
+        +'<button class="btn" type="button" id="reportZelleBtn" style="border:0;cursor:pointer;margin-top:14px">I sent the Zelle payment</button>';
+      var reportBtn=document.getElementById('reportZelleBtn');
+      if(reportBtn){
+        reportBtn.disabled=status==='Payment Reported';
+        reportBtn.textContent=status==='Payment Reported'?'Payment reported':'I sent the Zelle payment';
+        reportBtn.addEventListener('click',function(){
+          reportBtn.disabled=true;reportBtn.textContent='Reporting…';
+          fetch('/api/report-zelle-payment',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({orderNumber:orderNumber,token:token})})
+            .then(function(res){return res.json().catch(function(){return {};});})
+            .then(function(r){if(r.ok){location.reload();}else{reportBtn.disabled=false;reportBtn.textContent='I sent the Zelle payment';alert('Could not report payment. Please try again.');}})
+            .catch(function(){reportBtn.disabled=false;reportBtn.textContent='I sent the Zelle payment';alert('Could not reach the server.');});
+        });
+      }
+    }
 
     view.style.display='block';
     stateBox.style.display='none';

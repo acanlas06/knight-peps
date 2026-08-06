@@ -190,8 +190,8 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 
   var gate=document.getElementById('gate');
   var dash=document.getElementById('dash');
-  var STATUS_CLASS={'Unpaid':'s-unpaid','Paid':'s-paid','On its way':'s-way','Delivered':'s-delivered','Cancelled':'s-cancelled'};
-  var statuses=['Unpaid','Paid','On its way','Delivered'];
+  var STATUS_CLASS={'Pending Zelle Payment':'s-unpaid','Payment Reported':'s-way','Unpaid':'s-unpaid','Paid':'s-paid','On its way':'s-way','Delivered':'s-delivered','Cancelled':'s-cancelled'};
+  var statuses=['Pending Zelle Payment','Payment Reported','Paid','On its way','Delivered'];
   var CANCELLED='Cancelled';
   var orders=[];
   var activeStatus='All';
@@ -231,7 +231,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     document.getElementById('tiles').innerHTML=[
       ['Gross revenue',money(stats.grossRevenue),stats.orderCount+' orders'],
       ['Collected',money(stats.collectedRevenue),'Paid, shipped or delivered'],
-      ['Awaiting payment',money(stats.unpaidRevenue),(stats.byStatus['Unpaid']||0)+' unpaid orders'],
+      ['Awaiting Zelle',money(stats.unpaidRevenue),((stats.byStatus['Pending Zelle Payment']||0)+(stats.byStatus['Payment Reported']||0))+' pending/reported'],
       ['Average order',money(stats.averageOrderValue),stats.uniqueCustomers+' unique customers'],
       ['Cancelled',(stats.cancelledCount||0)+'',money(stats.cancelledValue||0)+' not counted in revenue']
     ].map(function(t){
@@ -356,7 +356,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
           +'<td>'+dt(o.placedAt)+'</td>'
           +'<td class="cust">'+esc(o.customerName||'—')+'<span>'+esc(o.email||'')+'</span></td>'
           +'<td class="items">'+(items||'—')+'</td>'
-          +'<td class="amt">'+money(o.total)+'</td>'
+          +'<td class="amt">'+money(o.total)+(o.zelleMemo?'<div style="color:var(--muted);font-size:11px;font-weight:800;margin-top:4px">Memo '+esc(o.zelleMemo)+'</div>':'')+'</td>'
           +'<td><span class="status-pill '+(STATUS_CLASS[o.status]||'')+'">'+esc(o.status)+'</span></td>'
           +last+'</tr>';
       }).join('')+'</tbody></table>';

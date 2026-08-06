@@ -58,3 +58,6 @@ inventory.json
 
 # Anonymous site analytics
 analytics.json
+
+# Public Zelle recipient configuration for local checkout (edit locally)
+zelle-config.json
