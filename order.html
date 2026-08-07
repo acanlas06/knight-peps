@@ -46,6 +46,7 @@ main{flex:1;padding:44px 0 70px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
 @media(max-width:680px){.panel{padding:20px;border-radius:18px}.hero-inner{padding:38px 0 44px}}
 </style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
+<script src="assets/zelle.js"></script>
 </head><body>
 
 <div class="hero">
@@ -195,6 +196,14 @@ main{flex:1;padding:44px 0 70px}
     if(o.shippingMethod)rows.push('<strong>Fulfillment</strong><br>'+esc(o.shippingMethod));
     if(o.paymentPreference)rows.push('<strong>Payment</strong><br>'+esc(o.paymentPreference));
     document.getElementById('orderDetails').innerHTML=rows.join('<br><br>');
+
+    // Still unpaid and paying by Zelle? Keep the instructions to hand.
+    if(window.KL_ZELLE&&window.KL_ZELLE.isZelle(o.paymentPreference)&&status==='Unpaid'){
+      window.KL_ZELLE.styles();
+      var host=document.createElement('div');
+      host.innerHTML=window.KL_ZELLE.panel(o.orderNumber,o.total);
+      document.querySelector('#orderItems').parentNode.appendChild(host.firstChild);
+    }
 
     view.style.display='block';
     stateBox.style.display='none';

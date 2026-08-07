@@ -930,6 +930,17 @@ def find_order(number, token):
     return public, None
 
 
+# Zelle payment details. Must match assets/zelle.js.
+ZELLE_TOKEN = "cj060824@gmail.com"
+ZELLE_NAME = "Christopher"
+ZELLE_LINK = ("https://enroll.zellepay.com/qr-codes?data="
+              "eyJuYW1lIjoiQ0hSSVNUT1BIRVIiLCJ0b2tlbiI6ImNqMDYwODI0QGdtYWlsLmNvbSJ9")
+
+
+def is_zelle(preference):
+    return "zelle" in str(preference or "").lower()
+
+
 def build_order_email(order, link):
     message = EmailMessage()
     message["Subject"] = "Knight Labs order " + order["orderNumber"]
@@ -948,19 +959,31 @@ def build_order_email(order, link):
             address.get("name", ""), address.get("street", ""), address.get("city", ""),
             address.get("state", ""), address.get("zip", ""), address.get("country", "")))
 
+    zelle_text = ""
+    if is_zelle(order.get("paymentPreference")):
+        zelle_text = (
+            "\nHOW TO PAY WITH ZELLE\n"
+            "  1. Send exactly %s\n"
+            "  2. Send to %s (shows as %s)\n"
+            "  3. Put %s in the memo / note field\n\n"
+            "  Zelle: %s\n\n"
+            "The order number in the memo is how your payment is matched to this\n"
+            "order. Your order stays Unpaid until the payment is received.\n"
+            % (fmt(order["total"]), ZELLE_TOKEN, ZELLE_NAME,
+               order["orderNumber"], ZELLE_LINK)
+        )
+
     message.set_content(
         "Thanks for your order.\n\n"
         "Order %s\nPlaced %s\n\n"
-        "Items:\n%s\n\nTotal: %s\n%s\n"
+        "Items:\n%s\n\nTotal: %s\n%s\n%s"
         "View your order:\n%s\n\n"
         "Keep this link — it is the only way to view this order if you do not "
         "have an account.\n\n"
-        "No payment has been collected. Knight Labs will confirm availability "
-        "and the final total, then send payment instructions directly.\n\n"
         "For research and laboratory use only. Not intended for human or "
         "veterinary consumption.\n\n— Knight Labs\n"
         % (order["orderNumber"], order["placedAt"], "\n".join(lines),
-           fmt(order["total"]), address_text, link)
+           fmt(order["total"]), address_text, zelle_text, link)
     )
 
     rows = "".join(
@@ -980,6 +1003,29 @@ def build_order_email(order, link):
                html_escape(address.get("city", "")), html_escape(address.get("state", "")),
                html_escape(address.get("zip", "")), html_escape(address.get("country", ""))))
 
+    zelle_html = ""
+    if is_zelle(order.get("paymentPreference")):
+        zelle_html = (
+            '<div style="border:1px solid #d4af37;border-radius:12px;background:#fdf8e7;'
+            'padding:18px;margin:22px 0">'
+            '<p style="margin:0 0 12px;font-size:11px;font-weight:700;letter-spacing:.1em;'
+            'text-transform:uppercase;color:#8c6713">How to pay with Zelle</p>'
+            '<p style="margin:0 0 8px;font-size:14px">1. Send exactly <strong>%s</strong></p>'
+            '<p style="margin:0 0 8px;font-size:14px">2. Send to <strong>%s</strong> '
+            '<span style="color:#716958">(shows as %s)</span></p>'
+            '<p style="margin:0 0 12px;font-size:14px">3. Put <strong>%s</strong> in the '
+            'memo / note field</p>'
+            '<p style="margin:0 0 12px"><a href="%s" style="display:inline-block;'
+            'background:#d4af37;color:#080604;padding:10px 18px;border-radius:8px;'
+            'font-weight:700;text-decoration:none">Open in Zelle</a></p>'
+            '<p style="margin:0;color:#716958;font-size:12px;line-height:1.6">The order '
+            'number in the memo is how your payment is matched to this order. Your order '
+            'stays Unpaid until the payment is received.</p>'
+            '</div>'
+            % (fmt(order["total"]), html_escape(ZELLE_TOKEN), html_escape(ZELLE_NAME),
+               html_escape(order["orderNumber"]), html_escape(ZELLE_LINK))
+        )
+
     message.add_alternative(
         '<html><body style="font-family:Arial,Helvetica,sans-serif;color:#11100b;margin:0;padding:24px">'
         '<div style="max-width:560px;margin:0 auto">'
@@ -989,6 +1035,7 @@ def build_order_email(order, link):
         '<tr><td style="padding:12px 0;border-top:2px solid #dac89a"><strong>Total</strong></td>'
         '<td style="padding:12px 0;border-top:2px solid #dac89a;text-align:right">'
         '<strong>%s</strong></td></tr></table>'
+        '%s'
         '%s'
         '<p style="margin:24px 0"><a href="%s" style="display:inline-block;background:#d4af37;'
         'color:#080604;padding:12px 22px;border-radius:8px;font-weight:700;text-decoration:none">'
@@ -1003,7 +1050,7 @@ def build_order_email(order, link):
         'veterinary consumption.</p>'
         '</div></body></html>'
         % (html_escape(order["orderNumber"]), rows, fmt(order["total"]), address_html,
-           html_escape(link)),
+           zelle_html, html_escape(link)),
         subtype="html",
     )
     return message
