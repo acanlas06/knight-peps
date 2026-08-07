@@ -1,0 +1,55 @@
+[Unit]
+Description=Knight Labs storefront
+Documentation=https://github.com/acanlas06/knight-peps
+After=network-online.target
+Wants=network-online.target
+# Never stop trying to restart, however many times it has failed.
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=__USER__
+Group=__USER__
+WorkingDirectory=__APP_DIR__
+
+# Live data lives outside the git checkout, so deploys never touch orders,
+# accounts or analytics. The app binds loopback only — Caddy is the sole
+# public listener.
+Environment=KL_DATA_DIR=__DATA_DIR__
+Environment=KL_BIND_HOST=127.0.0.1
+# Pinned so emailed reset and order links are always absolute https URLs,
+# regardless of what Host header a request arrives with.
+Environment=KL_BASE_URL=https://__DOMAIN__
+Environment=PYTHONUNBUFFERED=1
+
+ExecStart=/usr/bin/python3 __APP_DIR__/server.py __PORT__
+
+# Come back automatically after a crash, and keep trying rather than giving up.
+Restart=always
+RestartSec=3
+
+# Hardening. The app only ever needs to read its own code and write its data
+# directory, so everything else is off the table.
+NoNewPrivileges=true
+PrivateTmp=true
+PrivateDevices=true
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+RestrictRealtime=true
+LockPersonality=true
+MemoryDenyWriteExecute=true
+# The only writable path.
+ReadWritePaths=__DATA_DIR__
+# Outbound SMTP and inbound HTTP need IP; nothing else.
+RestrictAddressFamilies=AF_INET AF_INET6
+
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=knight-labs
+
+[Install]
+WantedBy=multi-user.target

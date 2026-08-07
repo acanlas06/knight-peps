@@ -1,0 +1,42 @@
+# Knight Labs — HTTPS front door.
+#
+# Caddy obtains and renews a free Let's Encrypt certificate automatically once
+# DNS for the domain points at this server. It also redirects HTTP to HTTPS,
+# so customer passwords are never sent in the clear.
+
+__DOMAIN__, www.__DOMAIN__ {
+	# The Python app listens on loopback only.
+	reverse_proxy 127.0.0.1:__PORT__
+
+	encode gzip zstd
+
+	header {
+		# Don't advertise the stack.
+		-Server
+		# Force HTTPS for a year once a browser has seen this site.
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		# Basic hardening.
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "DENY"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		# The order and reset pages carry tokens in the URL; keep them out of
+		# search engines and out of referrer headers.
+		X-Robots-Tag "noindex"
+	}
+
+	# Data files must never be reachable over HTTP, even if one is ever placed
+	# in the app directory by mistake.
+	@blocked {
+		path /accounts.json /orders.json /inventory.json /analytics.json
+		path /smtp-config.json /admin-config.json
+		path /outbox/* /deploy/* /.git/* /*.py /*.bat /*.sh
+	}
+	respond @blocked 404
+
+	log {
+		output file /var/log/caddy/knight-labs.log {
+			roll_size 10MiB
+			roll_keep 5
+		}
+	}
+}

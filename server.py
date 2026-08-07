@@ -31,11 +31,24 @@ from email.message import EmailMessage
 from html import escape as html_escape
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
-ACCOUNTS_FILE = os.path.join(ROOT, "accounts.json")
-ORDERS_FILE = os.path.join(ROOT, "orders.json")
-INVENTORY_FILE = os.path.join(ROOT, "inventory.json")
-ANALYTICS_FILE = os.path.join(ROOT, "analytics.json")
-OUTBOX_DIR = os.path.join(ROOT, "outbox")
+
+# Where live data lives. In production this points outside the git checkout
+# (KL_DATA_DIR=/var/lib/knight-labs) so a deploy never touches customer data
+# and a stray `git clean` cannot delete orders. Defaults to the repo for local
+# development, which is what you want when hacking on it.
+DATA_DIR = os.environ.get("KL_DATA_DIR", "").strip() or ROOT
+if DATA_DIR != ROOT:
+    os.makedirs(DATA_DIR, exist_ok=True)
+
+# Interface to bind. Behind Caddy this stays on loopback so the Python server
+# is never exposed directly to the internet.
+BIND_HOST = os.environ.get("KL_BIND_HOST", "127.0.0.1").strip() or "127.0.0.1"
+
+ACCOUNTS_FILE = os.path.join(DATA_DIR, "accounts.json")
+ORDERS_FILE = os.path.join(DATA_DIR, "orders.json")
+INVENTORY_FILE = os.path.join(DATA_DIR, "inventory.json")
+ANALYTICS_FILE = os.path.join(DATA_DIR, "analytics.json")
+OUTBOX_DIR = os.path.join(DATA_DIR, "outbox")
 PBKDF2_ITERATIONS = 260000
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
 MIN_PASSWORD_LENGTH = 6
@@ -62,7 +75,7 @@ ALL_STATUSES = ORDER_STATUSES + [CANCELLED_STATUS]
 # Admin access. Emails listed in admin-config.json get the admin dashboard on
 # sign-in. Passwords are never stored here — admins register through the normal
 # signup form, so their credentials live in accounts.json like any other user.
-ADMIN_CONFIG_FILE = os.path.join(ROOT, "admin-config.json")
+ADMIN_CONFIG_FILE = os.environ.get("KL_ADMIN_CONFIG", "").strip() or os.path.join(DATA_DIR, "admin-config.json")
 ADMIN_SESSION_BYTES = 32
 ADMIN_SESSION_TTL_SECONDS = 8 * 3600
 _admin_sessions = {}  # token_hash -> {"email":..., "expires_at":...}
@@ -132,7 +145,7 @@ def admin_session_email(token):
 #
 # Copy smtp-config.example.json to smtp-config.json and fill it in. The file is
 # gitignored so the app password never reaches the repository.
-SMTP_CONFIG_FILE = os.path.join(ROOT, "smtp-config.json")
+SMTP_CONFIG_FILE = os.environ.get("KL_SMTP_CONFIG", "").strip() or os.path.join(DATA_DIR, "smtp-config.json")
 
 
 def load_mail_config():
@@ -170,14 +183,14 @@ def load_mail_config():
         "port": port,
         "user": str(pick("user")).strip(),
         "password": str(pick("password")),
-        "from": str(pick("from", "no-reply@knightlabs.example")).strip(),
+        "from": str(pick("from", "no-reply@knightlabs.com")).strip(),
         "tls": tls,
     }
 
 
 MAIL = load_mail_config()
 # Gmail (and most providers) reject a From: that isn't the authenticated user.
-if MAIL["host"] and MAIL["user"] and MAIL["from"] == "no-reply@knightlabs.example":
+if MAIL["host"] and MAIL["user"] and MAIL["from"] == "no-reply@knightlabs.com":
     MAIL["from"] = MAIL["user"]
 
 _lock = threading.Lock()
@@ -1347,11 +1360,26 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         self._send_json(200, {"ok": True, "order": order})
 
     def _base_url(self):
+        """Base URL for links we email out.
+
+        These links carry single-use tokens, so the scheme matters: an http://
+        link would send the token in the clear before any redirect to https.
+        KL_BASE_URL wins; otherwise trust Caddy's X-Forwarded-Proto, and assume
+        https for anything that is not plainly a local dev host.
+        """
         configured = os.environ.get("KL_BASE_URL", "").rstrip("/")
         if configured:
             return configured
+
         host = self.headers.get("Host") or f"127.0.0.1:{self.server.server_address[1]}"
-        return f"http://{host}"
+        forwarded = (self.headers.get("X-Forwarded-Proto") or "").split(",")[0].strip().lower()
+        if forwarded in ("http", "https"):
+            scheme = forwarded
+        else:
+            bare = host.split(":")[0].lower()
+            local = bare in ("localhost", "127.0.0.1", "::1") or bare.endswith(".local")
+            scheme = "http" if local else "https"
+        return f"{scheme}://{host}"
 
     def _handle_request_password_reset(self):
         data = self._read_json()
@@ -1449,8 +1477,10 @@ class Handler(http.server.SimpleHTTPRequestHandler):
 
 def main():
     port = int(sys.argv[1]) if len(sys.argv) > 1 else 8123
-    server = http.server.ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    print(f"Knight Labs dev server running at http://127.0.0.1:{port}/")
+    server = http.server.ThreadingHTTPServer((BIND_HOST, port), Handler)
+    print(f"Knight Labs server running at http://{BIND_HOST}:{port}/")
+    if DATA_DIR != ROOT:
+        print(f"Data directory: {DATA_DIR}")
     if MAIL["host"]:
         print(f"Mail: sending via {MAIL['host']}:{MAIL['port']} as {MAIL['from']}")
     else:
