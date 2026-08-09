@@ -64,6 +64,16 @@ ORDER_TOKEN_BYTES = 32   # order numbers are guessable, so the token guards acce
 MAX_ORDER_ITEMS = 60
 MAX_ORDER_BODY_BYTES = 60_000
 
+# Affiliate / promo codes. These rules are validated server-side so customers
+# cannot invent their own discount by editing browser storage or JavaScript.
+AFFILIATE_CODES = {
+    "AC": {
+        "label": "AC Affiliate",
+        "percent": 15,
+        "active": True,
+    },
+}
+
 # Order lifecycle. Order matters — the dashboard renders them in this sequence.
 ORDER_STATUSES = ["Unpaid", "Paid", "On its way", "Delivered"]
 DEFAULT_ORDER_STATUS = "Unpaid"
@@ -332,6 +342,28 @@ def clean_text(value, limit=200):
     return str(value if value is not None else "").strip()[:limit]
 
 
+def normalise_affiliate_code(value):
+    return re.sub(r"[^A-Z0-9_-]", "", clean_text(value, 40).upper())
+
+
+def affiliate_discount_for(code, subtotal):
+    code = normalise_affiliate_code(code)
+    if not code:
+        return None, 0.0, None
+    rule = AFFILIATE_CODES.get(code)
+    if not rule or not rule.get("active"):
+        return None, 0.0, "invalid_affiliate_code"
+    percent = float(rule.get("percent") or 0)
+    if percent <= 0 or percent >= 100:
+        return None, 0.0, "invalid_affiliate_code"
+    discount = round(float(subtotal) * percent / 100, 2)
+    return {
+        "code": code,
+        "label": clean_text(rule.get("label") or code, 80),
+        "percent": round(percent, 2),
+    }, discount, None
+
+
 def sanitise_order(payload):
     """Validate and normalise a submitted order. Returns (order, error_code)."""
     email = clean_text(payload.get("email"), 254).lower()
@@ -368,6 +400,11 @@ def sanitise_order(payload):
 
     subtotal = round(sum(i["lineTotal"] for i in items), 2)
     item_count = sum(i["qty"] for i in items)
+    affiliate, discount_amount, affiliate_error = affiliate_discount_for(
+        payload.get("affiliateCode"), subtotal)
+    if affiliate_error:
+        return None, affiliate_error
+    total = round(max(0.0, subtotal - discount_amount), 2)
 
     address_in = payload.get("shippingAddress")
     address = None
@@ -385,7 +422,9 @@ def sanitise_order(payload):
         "items": items,
         "itemCount": item_count,
         "subtotal": subtotal,
-        "total": subtotal,
+        "discountAmount": discount_amount,
+        "affiliate": affiliate,
+        "total": total,
         "status": DEFAULT_ORDER_STATUS,
         "placedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "statusHistory": [{
@@ -986,17 +1025,23 @@ def build_order_email(order, link):
                order["orderNumber"], ZELLE_LINK)
         )
 
+    discount_text = ""
+    if order.get("affiliate") and order.get("discountAmount"):
+        discount_text = "\nAffiliate code %s: -%s" % (
+            order["affiliate"].get("code", ""), fmt(order.get("discountAmount", 0)))
+
     message.set_content(
         "Thanks for your order.\n\n"
         "Order %s\nPlaced %s\n\n"
-        "Items:\n%s\n\nTotal: %s\n%s\n%s"
+        "Items:\n%s\n\nSubtotal: %s%s\nTotal: %s\n%s\n%s"
         "View your order:\n%s\n\n"
         "Keep this link — it is the only way to view this order if you do not "
         "have an account.\n\n"
         "For research and laboratory use only. Not intended for human or "
         "veterinary consumption.\n\n— Knight Labs\n"
         % (order["orderNumber"], order["placedAt"], "\n".join(lines),
-           fmt(order["total"]), address_text, zelle_text, link)
+           fmt(order.get("subtotal", order["total"])), discount_text, fmt(order["total"]),
+           address_text, zelle_text, link)
     )
 
     rows = "".join(
@@ -1039,15 +1084,29 @@ def build_order_email(order, link):
                html_escape(order["orderNumber"]), html_escape(ZELLE_LINK))
         )
 
+    total_rows = (
+        '<tr><td style="padding:12px 0;border-top:2px solid #dac89a">Subtotal</td>'
+        '<td style="padding:12px 0;border-top:2px solid #dac89a;text-align:right">%s</td></tr>'
+        % fmt(order.get("subtotal", order["total"]))
+    )
+    if order.get("affiliate") and order.get("discountAmount"):
+        total_rows += (
+            '<tr><td style="padding:8px 0;color:#8c6713">Affiliate code %s</td>'
+            '<td style="padding:8px 0;text-align:right;color:#8c6713">-%s</td></tr>'
+            % (html_escape(order["affiliate"].get("code", "")), fmt(order.get("discountAmount", 0)))
+        )
+    total_rows += (
+        '<tr><td style="padding:12px 0;border-top:2px solid #dac89a"><strong>Total</strong></td>'
+        '<td style="padding:12px 0;border-top:2px solid #dac89a;text-align:right">'
+        '<strong>%s</strong></td></tr>' % fmt(order["total"])
+    )
+
     message.add_alternative(
         '<html><body style="font-family:Arial,Helvetica,sans-serif;color:#11100b;margin:0;padding:24px">'
         '<div style="max-width:560px;margin:0 auto">'
         '<h2 style="letter-spacing:-.02em;margin:0 0 4px">Thanks for your order</h2>'
         '<p style="color:#716958;font-size:14px;margin:0 0 20px">Order %s</p>'
-        '<table style="width:100%%;border-collapse:collapse;font-size:14px">%s'
-        '<tr><td style="padding:12px 0;border-top:2px solid #dac89a"><strong>Total</strong></td>'
-        '<td style="padding:12px 0;border-top:2px solid #dac89a;text-align:right">'
-        '<strong>%s</strong></td></tr></table>'
+        '<table style="width:100%%;border-collapse:collapse;font-size:14px">%s%s</table>'
         '%s'
         '%s'
         '<p style="margin:24px 0"><a href="%s" style="display:inline-block;background:#d4af37;'
@@ -1062,7 +1121,7 @@ def build_order_email(order, link):
         'padding-top:14px">For research and laboratory use only. Not intended for human or '
         'veterinary consumption.</p>'
         '</div></body></html>'
-        % (html_escape(order["orderNumber"]), rows, fmt(order["total"]), address_html,
+        % (html_escape(order["orderNumber"]), rows, total_rows, address_html,
            zelle_html, html_escape(link)),
         subtype="html",
     )

@@ -104,7 +104,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 @media(max-width:1200px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1000px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.items{display:none}th.col-items{display:none}}
 @media(max-width:680px){.tiles{grid-template-columns:1fr}td,th{padding-left:6px;padding-right:6px}}
-</style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
+</style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
 </head><body>
 
 <div class="topbar">
@@ -337,6 +337,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
         var items=(o.items||[]).map(function(i){
           return esc(i.name)+' '+esc(i.size)+' ×'+i.qty;
         }).join('<br>');
+        if(o.affiliate&&o.affiliate.code){items+=(items?'<br>':'')+'<span style="color:#8c6713;font-weight:900">Code '+esc(o.affiliate.code)+' · -'+money(o.discountAmount||0)+'</span>';}
         var last='<td>';
         if(isCancelledView){
           last+='<div class="cancel-meta">'+(o.cancelledAt?esc(new Date(o.cancelledAt).toLocaleString()):'')
@@ -356,7 +357,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
           +'<td>'+dt(o.placedAt)+'</td>'
           +'<td class="cust">'+esc(o.customerName||'—')+'<span>'+esc(o.email||'')+'</span></td>'
           +'<td class="items">'+(items||'—')+'</td>'
-          +'<td class="amt">'+money(o.total)+'</td>'
+          +'<td class="amt">'+money(o.total)+(o.discountAmount?'<span style="display:block;color:#8c6713;font-size:11px;font-weight:900">'+esc((o.affiliate&&o.affiliate.code)||'CODE')+' saved '+money(o.discountAmount)+'</span>':'')+'</td>'
           +'<td><span class="status-pill '+(STATUS_CLASS[o.status]||'')+'">'+esc(o.status)+'</span></td>'
           +last+'</tr>';
       }).join('')+'</tbody></table>';
@@ -411,7 +412,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     confirmBtn.focus();
   }
   function summaryFor(o){
-    return '<b>'+esc(o.orderNumber)+' · '+money(o.total)+'</b>'
+    return '<b>'+esc(o.orderNumber)+' · '+money(o.total)+(o.affiliate&&o.affiliate.code?' · '+esc(o.affiliate.code):'')+'</b>'
       +'<span>'+esc(o.customerName||'')+' · '+esc(o.email||'')+'<br>'
       +(o.itemCount===1?'1 item':(o.itemCount||0)+' items')
       +' · placed '+esc(o.placedAt?new Date(o.placedAt).toLocaleDateString():'—')+'</span>';

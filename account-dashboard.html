@@ -64,7 +64,7 @@ body.dark-mode .st-unpaid{color:#ef8078}body.dark-mode .st-paid{color:#a7cc7d}bo
 .reset-message.error{color:#e5534b;background:rgba(229,83,75,.12);border:1px solid rgba(229,83,75,.42)}
 body.dark-mode .reset-message.success{color:#a7cc7d}@media(max-width:820px){body{grid-template-columns:1fr}.sidebar{position:fixed;left:-240px;width:240px;height:100vh;z-index:50;transition:.3s;box-shadow:0 0 0 1px rgba(0,0,0,.1)}.sidebar.open{left:0}.menu-toggle{position:fixed;top:14px;left:14px;z-index:40;background:var(--gold2);border:none;border-radius:8px;padding:10px;cursor:pointer;font-size:20px}.theme-toggle{top:14px;right:14px}.dashboard-content{padding:18px}.header-bar{padding:14px 18px}.main-content{padding-top:50px}}.tooltip{font-size:12px;opacity:.8;margin-top:4px}
 </style>
-<link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
+<link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
 </head><body>
 
 <aside class="sidebar" id="sidebar">
@@ -373,6 +373,7 @@ document.addEventListener('DOMContentLoaded',function(){
         +'<div style="margin-bottom:12px"><span class="order-status '+statusClass(status)+'" data-status-for="'+escapeHTML(order.orderNumber||'')+'">'+escapeHTML(status)+'</span></div>'
         +'<p style="color:var(--muted);font-size:13px;margin-bottom:12px">'+(order.itemCount||0)+' item'+((order.itemCount||0)===1?'':'s')+' · '+escapeHTML(order.shippingMethod||'Coordinate directly')+'</p>'
         +items
+        +(order.discountAmount?'<div style="display:flex;justify-content:space-between;gap:16px;padding-top:10px;margin-top:4px;border-top:1px solid var(--line);color:var(--gold3);font-weight:900"><span>Affiliate '+escapeHTML((order.affiliate&&order.affiliate.code)||'')+'</span><span>-'+money(order.discountAmount)+'</span></div>':'')
         +'<div style="display:flex;justify-content:space-between;gap:16px;padding-top:12px;margin-top:4px;border-top:2px solid var(--line)"><b>Total</b><b>'+money(order.total)+'</b></div>'
         +addrBlock
         +viewLink

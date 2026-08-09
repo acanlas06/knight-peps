@@ -45,7 +45,7 @@ main{flex:1;padding:44px 0 70px}
 .footer{background:#030303;color:rgba(255,247,223,.5);padding:26px 0;font-size:12px}
 @media(max-width:900px){.layout{grid-template-columns:1fr}}
 @media(max-width:680px){.panel{padding:20px;border-radius:18px}.hero-inner{padding:38px 0 44px}}
-</style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script>
+</style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
 <script src="assets/zelle.js"></script>
 </head><body>
 
@@ -77,7 +77,7 @@ main{flex:1;padding:44px 0 70px}
         <div style="height:14px"></div>
         <div class="panel-head">Items</div>
         <div id="orderItems"></div>
-        <div class="totals"><span>Total</span><span id="orderTotal">$0</span></div>
+        <div class="totals" style="font-size:15px;border-top:1px solid var(--line)"><span>Subtotal</span><span id="orderSubtotal">$0</span></div><div class="totals" id="orderDiscountRow" style="display:none;font-size:15px;color:#8c6713;border-top:1px solid var(--line)"><span id="orderDiscountLabel">Affiliate discount</span><span id="orderDiscount">-$0</span></div><div class="totals"><span>Total</span><span id="orderTotal">$0</span></div>
         <div class="note">No payment has been collected on this website. Knight Labs will confirm availability and the final total, then send payment instructions directly.</div>
       </div>
 
@@ -178,7 +178,7 @@ main{flex:1;padding:44px 0 70px}
       };
       document.getElementById('orderProgressLabel').textContent=LABELS[status]||'';
     }
-    document.getElementById('orderTotal').textContent=money(o.total);
+    document.getElementById('orderSubtotal').textContent=money(o.subtotal||o.total);var discount=Number(o.discountAmount||0);if(discount>0){document.getElementById('orderDiscountRow').style.display='flex';document.getElementById('orderDiscountLabel').textContent='Affiliate discount '+(((o.affiliate||{}).code)||'')+' ('+(((o.affiliate||{}).percent)||'')+'%)';document.getElementById('orderDiscount').textContent='-'+money(discount);}document.getElementById('orderTotal').textContent=money(o.total);
 
     document.getElementById('orderItems').innerHTML=(o.items||[]).map(function(i){
       return '<div class="item"><div><div class="item-name">'+esc(i.name)+'</div>'
@@ -194,7 +194,7 @@ main{flex:1;padding:44px 0 70px}
         +'<br>'+esc(a.city)+', '+esc(a.state)+' '+esc(a.zip)+'<br>'+esc(a.country));
     }
     if(o.shippingMethod)rows.push('<strong>Fulfillment</strong><br>'+esc(o.shippingMethod));
-    if(o.paymentPreference)rows.push('<strong>Payment</strong><br>'+esc(o.paymentPreference));
+    if(o.paymentPreference)rows.push('<strong>Payment</strong><br>'+esc(o.paymentPreference));if(o.affiliate&&o.affiliate.code)rows.push('<strong>Affiliate code</strong><br>'+esc(o.affiliate.code)+' — '+esc(o.affiliate.percent)+'% off');
     document.getElementById('orderDetails').innerHTML=rows.join('<br><br>');
 
     // Still unpaid and paying by Zelle? Keep the instructions to hand.
