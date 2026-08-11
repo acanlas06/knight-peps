@@ -193,14 +193,14 @@ def load_mail_config():
         "port": port,
         "user": str(pick("user")).strip(),
         "password": str(pick("password")),
-        "from": str(pick("from", "no-reply@knightlabs.com")).strip(),
+        "from": str(pick("from", "no-reply@knightpeps.com")).strip(),
         "tls": tls,
     }
 
 
 MAIL = load_mail_config()
 # Gmail (and most providers) reject a From: that isn't the authenticated user.
-if MAIL["host"] and MAIL["user"] and MAIL["from"] == "no-reply@knightlabs.com":
+if MAIL["host"] and MAIL["user"] and MAIL["from"] == "no-reply@knightpeps.com":
     MAIL["from"] = MAIL["user"]
 
 _lock = threading.Lock()
