@@ -59,8 +59,17 @@ id -u "$SERVICE_USER" >/dev/null 2>&1 || \
 
 echo "==> Fetching application to ${APP_DIR}"
 if [[ -d "$APP_DIR/.git" ]]; then
-  git -C "$APP_DIR" fetch --quiet origin
-  git -C "$APP_DIR" reset --hard --quiet origin/main
+  # On a re-run the checkout is already owned by the service user, so git must
+  # run as that user: as root it refuses with "dubious ownership". Adding
+  # safe.directory would silence it but give up a real protection, since a
+  # compromised service account could plant a hook for root to execute.
+  if command -v runuser >/dev/null 2>&1; then
+    runuser -u "$SERVICE_USER" -- git -C "$APP_DIR" fetch --quiet origin
+    runuser -u "$SERVICE_USER" -- git -C "$APP_DIR" reset --hard --quiet origin/main
+  else
+    sudo -u "$SERVICE_USER" -H git -C "$APP_DIR" fetch --quiet origin
+    sudo -u "$SERVICE_USER" -H git -C "$APP_DIR" reset --hard --quiet origin/main
+  fi
 else
   git clone --quiet "$REPO" "$APP_DIR"
 fi
