@@ -141,6 +141,7 @@
 
 </style>
   <link rel="stylesheet" href="assets/compliance-gate.css">
+<link rel="stylesheet" href="assets/site-search.css">
 <link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
 </head>
 <body>
@@ -165,6 +166,7 @@
         <button class="filter-btn" type="button" data-filter="longevity">Longevity</button>
         <button class="filter-btn" type="button" data-filter="cognitive">Cognitive</button>
         <button class="filter-btn" type="button" data-filter="dermatology">Dermatology</button>
+        <button class="filter-btn" type="button" data-filter="supplies">Supplies</button>
       </div>
 
       <section class="product-grid" aria-label="Knight Labs product catalog">
@@ -178,6 +180,7 @@
         <a class="supply-card" data-category="recovery" href="product-cjc-1295-without-dac-ipamorelin.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="CJC-1295 without DAC + Ipamorelin vial"></div><div class="card-info"><h2 class="card-title">CJC-1295 without DAC + Ipamorelin</h2><p class="card-price">$99.00 – $169.00</p></div></a>
         <a class="supply-card" data-category="recovery" href="product-ipamorelin.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="Ipamorelin vial"></div><div class="card-info"><h2 class="card-title">Ipamorelin</h2><p class="card-price">$49.00 – $79.00</p></div></a>
         <a class="supply-card" data-category="recovery" href="product-cjc-1295-without-dac-mod-grf-1-29.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="CJC-1295 without DAC / Mod GRF 1-29 vial"></div><div class="card-info"><h2 class="card-title">CJC-1295 without DAC / Mod GRF 1-29</h2><p class="card-price">$45.00 – $79.00</p></div></a>
+        <a class="supply-card" data-category="recovery" href="product-tesamorelin.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="Tesamorelin vial"></div><div class="card-info"><h2 class="card-title">Tesamorelin</h2><p class="card-price">$45.00 – $175.00</p></div></a>
 
         <a class="supply-card" data-category="longevity" href="product-nad.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="NAD+ vial"></div><div class="card-info"><h2 class="card-title">NAD+</h2><p class="card-price">$55.00</p></div></a>
         <a class="supply-card" data-category="longevity" href="product-glutathione.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="Glutathione vial"></div><div class="card-info"><h2 class="card-title">Glutathione</h2><p class="card-price">$69.00 – $119.00</p></div></a>
@@ -187,6 +190,8 @@
         <a class="supply-card" data-category="cognitive" href="product-selank.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="Selank vial"></div><div class="card-info"><h2 class="card-title">Selank</h2><p class="card-price">$45.00</p></div></a>
 
         <a class="supply-card" data-category="dermatology" href="product-ghk-cu.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="GHK-CU vial"></div><div class="card-info"><h2 class="card-title">GHK-CU</h2><p class="card-price">$40.00</p></div></a>
+
+        <a class="supply-card" data-category="supplies" href="product-bac-water.html"><div class="vial-area"><img src="assets/knight-labs-vial.png" alt="BAC Water vial"></div><div class="card-info"><h2 class="card-title">BAC Water</h2><p class="card-price">$10.00 – $15.00</p></div></a>
       </section>
 
       <div class="note"><strong>Research use only:</strong> Knight Labs products are intended for research and laboratory use only and are not intended for human or veterinary consumption.</div>
@@ -196,7 +201,7 @@
   <footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div></div></footer>
 
   <script>
-    const KL_PRODUCTS={"retatrutide":{"name":"Retatrutide","sizes":["10mg","20mg","30mg"]},"tirzepatide":{"name":"Tirzepatide","sizes":["10mg","20mg","30mg"]},"semaglutide":{"name":"Semaglutide","sizes":["5mg","10mg"]},"bpc-157":{"name":"BPC-157","sizes":["10mg"]},"tb500":{"name":"TB500","sizes":["10mg"]},"bpc-157-tb500-blend":{"name":"BPC-157 + TB500 Blend","sizes":["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin":{"name":"CJC-1295 without DAC + Ipamorelin","sizes":["5mg + 5mg","10mg + 10mg"]},"ipamorelin":{"name":"Ipamorelin","sizes":["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29":{"name":"CJC-1295 without DAC / Mod GRF 1-29","sizes":["2mg","5mg"]},"nad":{"name":"NAD+","sizes":["500mg"]},"glutathione":{"name":"Glutathione","sizes":["600mg","1200mg"]},"epithalon":{"name":"Epithalon","sizes":["10mg","50mg"]},"semax":{"name":"Semax","sizes":["10mg"]},"selank":{"name":"Selank","sizes":["10mg"]},"ghk-cu":{"name":"GHK-CU","sizes":["50mg"]}};
+    const KL_PRODUCTS={"retatrutide":{"name":"Retatrutide","sizes":["10mg","20mg","30mg"]},"tirzepatide":{"name":"Tirzepatide","sizes":["10mg","20mg","30mg"]},"semaglutide":{"name":"Semaglutide","sizes":["5mg","10mg"]},"bpc-157":{"name":"BPC-157","sizes":["10mg"]},"tb500":{"name":"TB500","sizes":["10mg"]},"bpc-157-tb500-blend":{"name":"BPC-157 + TB500 Blend","sizes":["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin":{"name":"CJC-1295 without DAC + Ipamorelin","sizes":["5mg + 5mg","10mg + 10mg"]},"ipamorelin":{"name":"Ipamorelin","sizes":["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29":{"name":"CJC-1295 without DAC / Mod GRF 1-29","sizes":["2mg","5mg"]},"nad":{"name":"NAD+","sizes":["500mg"]},"glutathione":{"name":"Glutathione","sizes":["600mg","1200mg"]},"epithalon":{"name":"Epithalon","sizes":["10mg","50mg"]},"semax":{"name":"Semax","sizes":["10mg"]},"selank":{"name":"Selank","sizes":["10mg"]},"ghk-cu":{"name":"GHK-CU","sizes":["50mg"]},"tesamorelin": {"name": "Tesamorelin","sizes": ["2mg","5mg","10mg","20mg"]},"bac-water": {"name": "BAC Water","sizes": ["3ml","10ml"]}};
     function readCart(){try{return JSON.parse(localStorage.getItem('knightLabsCart')||'[]')}catch(e){return []}}
     function cartTotalQty(){return readCart().reduce((n,i)=>n+(parseInt(i.qty,10)||0),0)}
     function updateCartCount(){document.querySelectorAll('[data-cart-count]').forEach(el=>el.textContent=cartTotalQty())}
@@ -228,5 +233,6 @@
 
 
   <script src="assets/analytics.js" defer></script>
+  <script src="assets/site-search.js" defer></script>
 </body>
 </html>
