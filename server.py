@@ -72,6 +72,11 @@ AFFILIATE_CODES = {
         "percent": 15,
         "active": True,
     },
+    "TGOMEZ": {
+        "label": "TGomez Affiliate",
+        "percent": 15,
+        "active": True,
+    },
 }
 
 # Order lifecycle. Order matters — the dashboard renders them in this sequence.
@@ -891,6 +896,35 @@ def admin_stats():
     per_day = {}
     customers = set()
     units = 0
+    referrals = {}
+
+    def referral_bucket(code, label=None, percent=None):
+        code = normalise_affiliate_code(code)
+        if not code:
+            return None
+        bucket = referrals.setdefault(code, {
+            "code": code,
+            "label": clean_text(label or code, 80),
+            "percent": round(float(percent or 0), 2),
+            "orderCount": 0,
+            "cancelledCount": 0,
+            "unitsOrdered": 0,
+            "subtotal": 0.0,
+            "discountAmount": 0.0,
+            "total": 0.0,
+            "collectedTotal": 0.0,
+            "unpaidTotal": 0.0,
+        })
+        if label and bucket["label"] == code:
+            bucket["label"] = clean_text(label, 80)
+        if percent and not bucket["percent"]:
+            bucket["percent"] = round(float(percent), 2)
+        return bucket
+
+    # Show active configured codes even before they have their first order.
+    for code, rule in AFFILIATE_CODES.items():
+        if rule.get("active"):
+            referral_bucket(code, rule.get("label") or code, rule.get("percent") or 0)
 
     for row in rows:
         status = row.get("status", DEFAULT_ORDER_STATUS)
@@ -898,15 +932,33 @@ def admin_stats():
         by_status[status] = by_status.get(status, 0) + 1
         revenue_by_status[status] = round(revenue_by_status.get(status, 0.0) + total, 2)
         units += int(row.get("itemCount") or 0)
+        affiliate = row.get("affiliate") or {}
+        bucket = referral_bucket(affiliate.get("code"), affiliate.get("label"), affiliate.get("percent"))
+        if bucket:
+            bucket["orderCount"] += 1
+            bucket["unitsOrdered"] += int(row.get("itemCount") or 0)
+            bucket["subtotal"] = round(bucket["subtotal"] + float(row.get("subtotal") or 0), 2)
+            bucket["discountAmount"] = round(bucket["discountAmount"] + float(row.get("discountAmount") or 0), 2)
+            bucket["total"] = round(bucket["total"] + total, 2)
+            if status in ("Paid", "On its way", "Delivered"):
+                bucket["collectedTotal"] = round(bucket["collectedTotal"] + total, 2)
+            if status == "Unpaid":
+                bucket["unpaidTotal"] = round(bucket["unpaidTotal"] + total, 2)
         if row.get("email"):
             customers.add(row["email"].lower())
         day = (row.get("placedAt") or "")[:10]
         if day:
-            bucket = per_day.setdefault(day, {"orders": 0, "revenue": 0.0, "customers": set()})
-            bucket["orders"] += 1
-            bucket["revenue"] = round(bucket["revenue"] + total, 2)
+            bucket_day = per_day.setdefault(day, {"orders": 0, "revenue": 0.0, "customers": set()})
+            bucket_day["orders"] += 1
+            bucket_day["revenue"] = round(bucket_day["revenue"] + total, 2)
             if row.get("email"):
-                bucket["customers"].add(row["email"].lower())
+                bucket_day["customers"].add(row["email"].lower())
+
+    for row in cancelled:
+        affiliate = row.get("affiliate") or {}
+        bucket = referral_bucket(affiliate.get("code"), affiliate.get("label"), affiliate.get("percent"))
+        if bucket:
+            bucket["cancelledCount"] += 1
 
     gross = round(sum(float(r.get("total") or 0) for r in rows), 2)
     # Money actually collected, as opposed to ordered.
@@ -932,6 +984,7 @@ def admin_stats():
         "byStatus": by_status,
         "revenueByStatus": revenue_by_status,
         "daily": daily[:30],
+        "referrals": sorted(referrals.values(), key=lambda r: (r["orderCount"] == 0, r["code"])),
         "statuses": ORDER_STATUSES,
         "cancelledStatus": CANCELLED_STATUS,
         "site": analytics_summary(),

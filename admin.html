@@ -139,6 +139,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     <div class="tabs">
       <button class="tab active" id="tabOrders" data-tab="orders">Orders</button>
       <button class="tab" id="tabProducts" data-tab="products">Products<span class="badge" id="soldOutBadge">0</span></button>
+      <button class="tab" id="tabReferrals" data-tab="referrals">Referral codes<span class="badge" id="referralBadge">0</span></button>
     </div>
 
     <div class="panel">
@@ -160,6 +161,11 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     <div class="panel" id="productsPanel" style="display:none">
       <p class="sub" style="margin-bottom:16px">Each vial size has its own stock count. Leave a size untracked to keep it always available. Counts can go negative if you oversell \u2014 orders are never blocked.</p>
       <div id="productsWrap"></div>
+    </div>
+
+    <div class="panel" id="referralsPanel" style="display:none">
+      <p class="sub" style="margin-bottom:16px">Referral sales are calculated from stored orders. Cancelled orders are separated out and not counted in revenue or vial totals.</p>
+      <div id="referralsWrap"></div>
     </div>
   </div>
 </main>
@@ -197,6 +203,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
   var orders=[];
   var activeStatus='All';
   var activeTab='orders';
+  var latestStats=null;
 
   function showGate(){gate.style.display='block';dash.style.display='none';}
   if(!session||!session.token){showGate();return;}
@@ -482,6 +489,34 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();
   });
 
+  /* ---------- referral-code sales ---------- */
+
+  function renderReferrals(){
+    var wrap=document.getElementById('referralsWrap');
+    var stats=latestStats||{};
+    var referrals=stats.referrals||[];
+    if(!referrals.length){
+      wrap.innerHTML='<div class="empty">No referral-code data yet. Active codes will appear here after stats load.</div>';
+      return;
+    }
+    wrap.innerHTML='<table><thead><tr>'
+      +'<th>Code</th><th>Discount</th><th>Orders</th><th>Vials</th>'
+      +'<th>Subtotal</th><th>Discounts</th><th>Total sales</th><th>Collected</th><th>Unpaid</th><th>Cancelled</th>'
+      +'</tr></thead><tbody>'
+      +referrals.map(function(r){
+        return '<tr class="row"><td class="ono">'+esc(r.code)+'<div style="color:var(--muted);font-size:12px;font-weight:400">'+esc(r.label||'')+'</div></td>'
+          +'<td class="amt">'+esc(String(r.percent||0))+'%</td>'
+          +'<td class="amt">'+(r.orderCount||0)+'</td>'
+          +'<td class="amt">'+(r.unitsOrdered||0)+'</td>'
+          +'<td class="amt">'+money(r.subtotal||0)+'</td>'
+          +'<td class="amt" style="color:#8c6713">-'+money(r.discountAmount||0)+'</td>'
+          +'<td class="amt">'+money(r.total||0)+'</td>'
+          +'<td class="amt">'+money(r.collectedTotal||0)+'</td>'
+          +'<td class="amt">'+money(r.unpaidTotal||0)+'</td>'
+          +'<td class="amt">'+(r.cancelledCount||0)+'</td></tr>';
+      }).join('')+'</tbody></table>';
+  }
+
   /* ---------- products / stock ---------- */
 
   var products=[];
@@ -597,15 +632,23 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     var badge=document.getElementById('soldOutBadge');
     badge.textContent=out;
     badge.style.display=out?'inline-block':'none';
+    var referralCount=((latestStats&&latestStats.referrals)||[]).filter(function(r){return (r.orderCount||0)>0;}).length;
+    var referralBadge=document.getElementById('referralBadge');
+    referralBadge.textContent=referralCount;
+    referralBadge.style.display=referralCount?'inline-block':'none';
     document.getElementById('tabOrders').classList.toggle('active',activeTab==='orders');
     document.getElementById('tabProducts').classList.toggle('active',activeTab==='products');
+    document.getElementById('tabReferrals').classList.toggle('active',activeTab==='referrals');
     var showProducts=activeTab==='products';
+    var showReferrals=activeTab==='referrals';
     document.getElementById('productsPanel').style.display=showProducts?'block':'none';
-    document.querySelector('#tableWrap').closest('.panel').style.display=showProducts?'none':'block';
+    document.getElementById('referralsPanel').style.display=showReferrals?'block':'none';
+    document.querySelector('#tableWrap').closest('.panel').style.display=(showProducts||showReferrals)?'none':'block';
   }
   function renderAll(){
     renderTabs();
     if(activeTab==='products'){renderProducts();return;}
+    if(activeTab==='referrals'){renderReferrals();return;}
     renderChips();renderTable();
   }
 
@@ -619,7 +662,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
   function loadStats(){
     return post('/api/admin/stats').then(function(r){
       if(r.status===401){showGate();return;}
-      if(r.data.ok)renderTiles(r.data.stats);
+      if(r.data.ok){latestStats=r.data.stats;renderTiles(latestStats);renderTabs();if(activeTab==='referrals')renderReferrals();}
     });
   }
 

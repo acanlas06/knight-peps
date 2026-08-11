@@ -44,6 +44,36 @@ def test_ac_affiliate_code_applies_15_percent_discount():
     assert_close(order["total"], 85)
 
 
+def test_tgomez_affiliate_code_applies_15_percent_discount():
+    order, error = server.sanitise_order(sample_payload(" tgomez "))
+    assert error is None
+    assert order["affiliate"]["code"] == "TGOMEZ"
+    assert order["affiliate"]["percent"] == 15
+    assert_close(order["subtotal"], 100)
+    assert_close(order["discountAmount"], 15)
+    assert_close(order["total"], 85)
+
+
+def test_admin_stats_tracks_referral_units_and_sales():
+    order, error = server.sanitise_order(sample_payload("TGOMEZ"))
+    assert error is None
+    order["orderNumber"] = "KL-TEST"
+    rows = {"KL-TEST": dict(order, token_hash="not-public")}
+    original_load_orders = server.load_orders
+    try:
+        server.load_orders = lambda: rows
+        stats = server.admin_stats()
+    finally:
+        server.load_orders = original_load_orders
+    referral = {r["code"]: r for r in stats["referrals"]}["TGOMEZ"]
+    assert referral["orderCount"] == 1
+    assert referral["unitsOrdered"] == 2
+    assert_close(referral["subtotal"], 100)
+    assert_close(referral["discountAmount"], 15)
+    assert_close(referral["total"], 85)
+    assert_close(referral["unpaidTotal"], 85)
+
+
 def test_unknown_affiliate_code_is_rejected():
     order, error = server.sanitise_order(sample_payload("NOPE"))
     assert order is None
@@ -62,6 +92,8 @@ def test_blank_affiliate_code_leaves_total_unchanged():
 if __name__ == "__main__":
     tests = [
         test_ac_affiliate_code_applies_15_percent_discount,
+        test_tgomez_affiliate_code_applies_15_percent_discount,
+        test_admin_stats_tracks_referral_units_and_sales,
         test_unknown_affiliate_code_is_rejected,
         test_blank_affiliate_code_leaves_total_unchanged,
     ]

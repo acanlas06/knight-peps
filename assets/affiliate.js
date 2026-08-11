@@ -5,7 +5,8 @@
 (function () {
   var STORAGE_KEY = 'knightLabsAffiliateCode';
   var RULES = {
-    AC: { label: 'AC Affiliate', percent: 15, active: true }
+    AC: { label: 'AC Affiliate', percent: 15, active: true },
+    TGOMEZ: { label: 'TGomez Affiliate', percent: 15, active: true }
   };
 
   function normalise(value) {
