@@ -25,7 +25,8 @@ if [[ ${#FILES[@]} -eq 0 ]]; then
 fi
 
 ARCHIVE="$BACKUP_DIR/knight-labs-$STAMP.tar.gz"
-# smtp-config.json is deliberately excluded: it holds the mail password, and a
+# smtp-config.json and telegram-config.json are deliberately excluded: they hold
+# a mail password and a bot token, and a
 # backup archive is a poor place for a credential.
 tar -czf "$ARCHIVE" -C "$DATA_DIR" "${FILES[@]}"
 chmod 600 "$ARCHIVE"

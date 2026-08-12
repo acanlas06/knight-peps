@@ -87,6 +87,19 @@ if [[ ! -f "$DATA_DIR/admin-config.json" ]]; then
   chown "$SERVICE_USER:$SERVICE_USER" "$DATA_DIR/admin-config.json"
   chmod 640 "$DATA_DIR/admin-config.json"
 fi
+if [[ ! -f "$DATA_DIR/telegram-config.json" ]]; then
+  cat > "$DATA_DIR/telegram-config.json" <<'JSON'
+{
+  "_readme": "Order alerts to a phone via Telegram. Create a bot with @BotFather, put its token here, then set chatId to your own chat id and enabled to true. Alerts stay off while enabled is false or the token is blank.",
+  "botToken": "",
+  "chatId": "",
+  "enabled": false
+}
+JSON
+  chown "$SERVICE_USER:$SERVICE_USER" "$DATA_DIR/telegram-config.json"
+  chmod 600 "$DATA_DIR/telegram-config.json"
+fi
+
 if [[ ! -f "$DATA_DIR/smtp-config.json" ]]; then
   cat > "$DATA_DIR/smtp-config.json" <<'JSON'
 {

@@ -49,6 +49,7 @@ __DOMAIN__, www.__DOMAIN__ {
 	@blocked {
 		path /accounts.json /orders.json /inventory.json /analytics.json
 		path /smtp-config.json /admin-config.json /affiliates.json
+		path /telegram-config.json
 		path /outbox/* /deploy/* /.git/* /*.py /*.bat /*.sh
 	}
 	respond @blocked 404

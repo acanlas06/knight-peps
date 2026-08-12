@@ -27,6 +27,8 @@ import smtplib
 import sys
 import threading
 import time
+import urllib.error
+import urllib.request
 from email.message import EmailMessage
 from html import escape as html_escape
 
@@ -49,6 +51,8 @@ ORDERS_FILE = os.path.join(DATA_DIR, "orders.json")
 INVENTORY_FILE = os.path.join(DATA_DIR, "inventory.json")
 ANALYTICS_FILE = os.path.join(DATA_DIR, "analytics.json")
 AFFILIATES_FILE = os.path.join(DATA_DIR, "affiliates.json")
+TELEGRAM_CONFIG_FILE = os.environ.get("KL_TELEGRAM_CONFIG", "").strip() \
+    or os.path.join(DATA_DIR, "telegram-config.json")
 OUTBOX_DIR = os.path.join(DATA_DIR, "outbox")
 PBKDF2_ITERATIONS = 260000
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -1454,6 +1458,111 @@ def build_reset_email(to_email, link):
     return message
 
 
+def load_telegram_config():
+    """Bot token and chat id for order alerts. Absent file means alerts off."""
+    if not os.path.exists(TELEGRAM_CONFIG_FILE):
+        return None
+    try:
+        with open(TELEGRAM_CONFIG_FILE, "r", encoding="utf-8") as handle:
+            cfg = json.load(handle)
+    except (OSError, ValueError) as exc:
+        print(f"[alert] Could not read telegram-config.json ({exc})", flush=True)
+        return None
+    token = str(cfg.get("botToken") or "").strip()
+    chat = str(cfg.get("chatId") or "").strip()
+    if not token or not chat or cfg.get("enabled") is False:
+        return None
+    return {"token": token, "chat": chat}
+
+
+def telegram_send(text):
+    """Post one message. Returns True on success; never raises."""
+    cfg = load_telegram_config()
+    if not cfg:
+        return False
+    url = "https://api.telegram.org/bot%s/sendMessage" % cfg["token"]
+    payload = json.dumps({
+        "chat_id": cfg["chat"],
+        "text": text,
+        "parse_mode": "HTML",
+        "disable_web_page_preview": True,
+    }).encode("utf-8")
+    try:
+        request = urllib.request.Request(
+            url, data=payload,
+            headers={"Content-Type": "application/json"})
+        with urllib.request.urlopen(request, timeout=10) as response:
+            body = json.loads(response.read().decode("utf-8", "replace"))
+        if not body.get("ok"):
+            print("[alert] Telegram refused the message: %s"
+                  % body.get("description", "no reason given"), flush=True)
+            return False
+        return True
+    except Exception as exc:  # noqa: BLE001
+        # A push failure must never affect the order or the customer.
+        print("[alert] Telegram send failed (%s: %s)"
+              % (exc.__class__.__name__, exc), flush=True)
+        return False
+
+
+def build_order_alert(order, link):
+    """Order alert for the shop owner's phone.
+
+    The street address is deliberately left out: this lands on a lock screen and
+    sits in notification history. Fulfilment method tells you whether it is local,
+    and the full address is one tap away in the admin dashboard.
+    """
+    esc = html_escape
+
+    def fmt(amount):
+        return "$%.2f" % float(amount or 0)
+
+    lines = ["\U0001F514 <b>New order %s</b>" % esc(order["orderNumber"]), ""]
+
+    who = order.get("customerName") or "No name given"
+    lines.append("<b>%s</b>" % esc(who))
+    lines.append(esc(order.get("email", "")))
+    if order.get("phone"):
+        lines.append(esc(order["phone"]))
+    lines.append("")
+
+    for item in order.get("items", []):
+        lines.append("%d \u00d7 %s %s \u2014 %s" % (
+            item.get("qty", 0), esc(item.get("name", "")),
+            esc(item.get("size", "")), fmt(item.get("lineTotal", 0))))
+    lines.append("")
+
+    lines.append("Subtotal %s" % fmt(order.get("subtotal", 0)))
+    affiliate = order.get("affiliate") or {}
+    if order.get("discountAmount"):
+        lines.append("Code %s \u2212%s" % (esc(affiliate.get("code", "")),
+                                       fmt(order["discountAmount"])))
+    if order.get("shippingFee"):
+        lines.append("%s %s" % (esc(order.get("shippingFeeLabel") or "Shipping"),
+                                fmt(order["shippingFee"])))
+    lines.append("<b>Total %s</b>" % fmt(order.get("total", 0)))
+    lines.append("")
+
+    lines.append("%s \u00b7 %s" % (esc(order.get("shippingMethod", "")),
+                                esc(order.get("paymentPreference", ""))))
+    lines.append('<a href="%s">View order</a>' % esc(link))
+    return "\n".join(lines)
+
+
+def notify_order_placed(order, link):
+    """Fire the alert on a background thread.
+
+    Checkout already waits on an SMTP round-trip; it must not also wait on
+    Telegram. The customer's response is not held up by a push that is only for
+    us, and a slow or unreachable API cannot stall an order.
+    """
+    if not load_telegram_config():
+        return
+    def run():
+        telegram_send(build_order_alert(order, link))
+    threading.Thread(target=run, daemon=True, name="order-alert").start()
+
+
 def send_email(message, link):
     """Deliver via SMTP when configured, otherwise write to ./outbox."""
     if MAIL["host"]:
@@ -1570,6 +1679,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._handle_admin_set_stock()
         elif self.path == "/api/validate-affiliate":
             self._handle_validate_affiliate()
+        elif self.path == "/api/admin/test-alert":
+            self._handle_admin_test_alert()
         elif self.path == "/api/admin/accounts":
             self._handle_admin_accounts()
         elif self.path == "/api/admin/affiliates":
@@ -1616,6 +1727,31 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             "discountAmount": discount,
             "total": round(max(0.0, subtotal - discount), 2),
         })
+
+    def _handle_admin_test_alert(self):
+        """Send a sample alert, so setup can be verified without a real order."""
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        if not load_telegram_config():
+            return self._send_json(200, {"ok": False, "code": "not_configured"})
+        sample = {
+            "orderNumber": "KL-TEST",
+            "customerName": "Test Customer",
+            "email": "test@example.com",
+            "phone": "(407) 555-0123",
+            "items": [{"name": "BAC Water", "size": "10ml", "qty": 2, "lineTotal": 30.0}],
+            "subtotal": 30.0, "discountAmount": 0, "affiliate": None,
+            "shippingFee": 10.0, "shippingFeeLabel": "Shipping", "total": 40.0,
+            "shippingMethod": "FedEx 3-7 days",
+            "paymentPreference": "Zelle after confirmation",
+        }
+        link = "%s/admin.html" % self._base_url()
+        ok = telegram_send(build_order_alert(sample, link))
+        self._send_json(200, {"ok": bool(ok),
+                              "code": "sent" if ok else "send_failed"})
 
     def _handle_admin_accounts(self):
         data = self._read_json()
@@ -1793,6 +1929,14 @@ class Handler(http.server.SimpleHTTPRequestHandler):
         except Exception as exc:  # noqa: BLE001
             # The order is already saved; a mail failure must not lose it.
             print("[mail] order confirmation failed for %s (%s: %s)"
+                  % (number, exc.__class__.__name__, exc), flush=True)
+
+        # Owner alert. Deliberately after the order is stored and the customer
+        # email attempted, and on its own thread, so it cannot affect either.
+        try:
+            notify_order_placed(order, link)
+        except Exception as exc:  # noqa: BLE001
+            print("[alert] could not queue order alert for %s (%s: %s)"
                   % (number, exc.__class__.__name__, exc), flush=True)
 
         self._send_json(200, {
