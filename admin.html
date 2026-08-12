@@ -120,6 +120,9 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 .aff-link button{border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
 .aff-link button:hover{border-color:var(--gold,#d4af37)}
 .chip-mini{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.chip-mini.chip-admin{border-color:var(--gold3);color:#8c6713;background:rgba(212,175,55,.14)}
+.chip-mini.chip-registered{border-color:rgba(123,162,79,.5);color:#4d6b2a;background:rgba(123,162,79,.12)}
+.chip-mini.chip-guest{color:var(--muted)}
 .account-detail{margin-top:22px;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(212,175,55,.06)}
 .account-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
 .account-detail-head button{border:1px solid var(--line);border-radius:999px;background:transparent;padding:7px 14px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;color:inherit}
@@ -193,6 +196,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 
     <div class="panel" id="accountsPanel" style="display:none">
       <p class="sub" style="margin-bottom:16px">Everyone who has ordered or registered. Click a row for their full history. Passwords are never shown or sent here \u2014 only their order record.</p>
+      <div class="chipbar" id="accountChips"></div>
       <div id="accountsWrap"></div>
       <div id="accountDetail" style="display:none"></div>
     </div>
@@ -544,6 +548,17 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
   var accountList=[];
   var accountsLoaded=false;
   var openAccount='';
+  var accountFilter='All';
+
+  /* One label per account, in precedence order: an allowlisted email is an admin
+     whether or not it has signed up, anyone else with an account is registered,
+     and anyone who only ever checked out is a guest. */
+  function accountType(a){
+    if(a.isAdmin)return 'Admin';
+    if(a.hasAccount)return 'Registered';
+    return 'Guest';
+  }
+  var ACCOUNT_TYPES=['Admin','Registered','Guest'];
 
   function loadAccounts(){
     return post('/api/admin/accounts',{}).then(function(r){
@@ -562,6 +577,45 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 
   function shortDate(v){return v?String(v).slice(0,10):'\u2014';}
 
+  function renderAccountChips(){
+    var bar=document.getElementById('accountChips');
+    if(!bar)return;
+    var counts={All:accountList.length};
+    ACCOUNT_TYPES.forEach(function(t){
+      counts[t]=accountList.filter(function(a){return accountType(a)===t;}).length;
+    });
+    bar.innerHTML=['All'].concat(ACCOUNT_TYPES).map(function(t){
+      return '<button class="chip'+(t===accountFilter?' active':'')+'" data-account-type="'+esc(t)+'">'
+        +esc(t==='All'?'All':t+'s')+' <span style="opacity:.7">'+(counts[t]||0)+'</span></button>';
+    }).join('');
+    bar.querySelectorAll('[data-account-type]').forEach(function(b){
+      b.addEventListener('click',function(){
+        accountFilter=this.dataset.accountType;
+        // A filtered-out account should not keep its detail panel open.
+        if(openAccount){
+          var still=accountByEmail(openAccount);
+          if(!still||(accountFilter!=='All'&&accountType(still)!==accountFilter))openAccount='';
+        }
+        renderAccounts();
+      });
+    });
+  }
+
+  /* Default order groups by type - admins, then registered, then guests - and
+     within a group puts the most recent order first so the useful rows are at
+     the top. Choosing a filter keeps that ordering inside the group. */
+  function sortedAccounts(){
+    var rank={Admin:0,Registered:1,Guest:2};
+    return accountList.filter(function(a){
+      return accountFilter==='All'||accountType(a)===accountFilter;
+    }).slice().sort(function(x,y){
+      var d=rank[accountType(x)]-rank[accountType(y)];
+      if(d)return d;
+      if((y.lastOrderAt||'')!==(x.lastOrderAt||''))return (y.lastOrderAt||'')<(x.lastOrderAt||'')?-1:1;
+      return x.email<y.email?-1:1;
+    });
+  }
+
   function renderAccounts(){
     var wrap=document.getElementById('accountsWrap');
     var detail=document.getElementById('accountDetail');
@@ -569,11 +623,21 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     if(!accountsLoaded){wrap.innerHTML='<div class="empty">Loading accounts\u2026</div>';return;}
     if(!accountList.length){wrap.innerHTML='<div class="empty">No accounts or orders yet.</div>';return;}
 
-    wrap.innerHTML='<table><thead><tr><th>Email</th><th>Name</th><th>Registered</th>'
+    renderAccountChips();
+    var rows=sortedAccounts();
+    if(!rows.length){
+      wrap.innerHTML='<div class="empty">No '+esc(accountFilter.toLowerCase())+' accounts.</div>';
+      if(detail)detail.style.display='none';
+      return;
+    }
+
+    // "Signed up" rather than "Registered": the column holds a date, and
+    // Registered is now a type label in the row itself.
+    wrap.innerHTML='<table><thead><tr><th>Email</th><th>Name</th><th>Signed up</th>'
       +'<th>Orders</th><th>Ordered</th><th>Collected</th><th>Last order</th></tr></thead><tbody>'
-      +accountList.map(function(a){
-        var tags=(a.isAdmin?' <span class="chip-mini">admin</span>':'')
-                +(a.hasAccount?'':' <span class="chip-mini">guest</span>');
+      +rows.map(function(a){
+        var type=accountType(a);
+        var tags=' <span class="chip-mini chip-'+type.toLowerCase()+'">'+esc(type.toLowerCase())+'</span>';
         return '<tr class="row account-row" data-account="'+esc(a.email)+'" style="cursor:pointer">'
           +'<td class="ono">'+esc(a.email)+tags+'</td>'
           +'<td>'+esc(a.name||'\u2014')+'</td>'
@@ -611,7 +675,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
       +'<div class="sub">'+esc(a.name||'No name on file')+(a.phone?' \u00b7 '+esc(a.phone):'')+'</div></div>'
       +'<button type="button" id="closeAccountDetail">Close</button></div>'
       +'<div class="account-facts">'
-      +'<div><span>Registered</span><b>'+esc(a.hasAccount?shortDate(a.createdAt):'Guest \u2014 no account')+'</b></div>'
+      +'<div><span>Type</span><b>'+esc(accountType(a))+'</b></div>'+'<div><span>Signed up</span><b>'+esc(a.hasAccount?shortDate(a.createdAt):'\u2014')+'</b></div>'
       +'<div><span>Orders</span><b>'+(a.orderCount||0)+'</b></div>'
       +'<div><span>Cancelled</span><b>'+(a.cancelledCount||0)+'</b></div>'
       +'<div><span>Ordered</span><b>'+money(a.ordered||0)+'</b></div>'
