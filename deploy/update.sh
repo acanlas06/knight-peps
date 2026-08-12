@@ -36,13 +36,20 @@ echo "==> Current commit: ${PREVIOUS:0:7}"
 echo "==> Fetching"
 git_svc fetch --quiet origin
 TARGET=$(git_svc rev-parse origin/main)
-if [[ "$PREVIOUS" == "$TARGET" ]]; then
-  echo "Already up to date. Nothing to deploy."
-  exit 0
-fi
 
-echo "==> Deploying ${TARGET:0:7}"
-git_svc reset --hard --quiet origin/main
+# Deliberately no early exit when the commit already matches. The checkout can
+# be current while the installed unit or Caddy config is not — for instance
+# after someone reset the checkout by hand, or when a config template changed in
+# a commit that was applied before this script knew how to install it. Skipping
+# straight out would leave the config stale with the script reporting success.
+CODE_CHANGED=1
+if [[ "$PREVIOUS" == "$TARGET" ]]; then
+  echo "    Already at ${TARGET:0:7}; checking the installed config anyway."
+  CODE_CHANGED=0
+else
+  echo "==> Deploying ${TARGET:0:7}"
+  git_svc reset --hard --quiet origin/main
+fi
 # Belt and braces: anything git created is already service-user owned, but a
 # previous root-run deploy may have left root-owned files behind.
 chown -R "$SERVICE_USER:$SERVICE_USER" "$APP_DIR"
@@ -77,9 +84,25 @@ if [[ -n "$DOMAIN" ]]; then
   RENDERED_CADDY=$(sed -e "s|__DOMAIN__|$DOMAIN|g" -e "s|__PORT__|$PORT|g" \
                        "$APP_DIR/deploy/Caddyfile")
   if ! printf '%s\n' "$RENDERED_CADDY" | diff -q - "$CADDYFILE" >/dev/null 2>&1; then
-    echo "==> Caddy config changed; reinstalling"
-    printf '%s\n' "$RENDERED_CADDY" > "$CADDYFILE"
-    systemctl reload caddy 2>/dev/null || systemctl restart caddy
+    echo "==> Caddy config changed; validating"
+    CADDY_TMP=$(mktemp)
+    printf '%s\n' "$RENDERED_CADDY" > "$CADDY_TMP"
+    # Validate before installing. Caddy is the only public listener, so writing
+    # a broken config and reloading would take the whole site down — and the
+    # rollback below only restores the checkout, not this file.
+    if caddy validate --config "$CADDY_TMP" --adapter caddyfile >/dev/null 2>&1; then
+      cp "$CADDY_TMP" "$CADDYFILE"
+      if systemctl reload caddy 2>/dev/null || systemctl restart caddy; then
+        echo "==> Caddy config reinstalled"
+      else
+        echo "!!! Caddy would not reload. Check: journalctl -u caddy -n 30" >&2
+      fi
+    else
+      echo "!!! New Caddy config is invalid; keeping the existing one." >&2
+      echo "    Inspect it with: caddy validate --config $CADDY_TMP --adapter caddyfile" >&2
+      CADDY_TMP=""   # leave the file behind for inspection
+    fi
+    [[ -n "$CADDY_TMP" ]] && rm -f "$CADDY_TMP"
   fi
 else
   echo "    (could not read the domain from $UNIT; skipping config refresh)" >&2
