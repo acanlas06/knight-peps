@@ -1,45 +1,60 @@
 /* Knight Labs — affiliate / promo code helper
  *
- * Captures ?ref=AC links and remembers the code while browsing.
+ * A code applies to one order and one order only. Nothing is remembered between
+ * visits: the checkout field starts empty every time and a discount exists only
+ * after Apply Code has been pressed for that order.
  *
- * The list of codes is deliberately NOT in this file. It used to be, which
- * meant anyone could read page source and find every active discount. Codes
- * now live in affiliates.json on the server and are managed from the admin
- * page; the browser asks about one code at a time via /api/validate-affiliate,
- * so unpublished codes cannot be discovered.
+ * The list of codes is deliberately NOT in this file. It used to be, which meant
+ * anyone could read page source and find every active discount. Codes live in
+ * affiliates.json on the server and are managed from the admin page; the browser
+ * asks about one code at a time via /api/validate-affiliate, so unpublished
+ * codes cannot be discovered.
  *
  * validate() learns the rule for a code. discountFor() then applies that rule
  * locally, so editing the cart does not need another round-trip. Neither is
- * trusted: the server recomputes the discount from its own store when the
- * order is placed.
+ * trusted: the server recomputes the discount from its own store when the order
+ * is placed.
  */
 (function () {
-  var STORAGE_KEY = 'knightLabsAffiliateCode';
+  var OLD_LOCAL_KEY = 'knightLabsAffiliateCode';
+  var SESSION_KEY = 'knightLabsReferralCode';
 
-  function normalise(value) {
-    return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 40);
-  }
+  /* Codes used to persist in localStorage and were re-applied to every later
+     order. Clear that once so a browser holding one does not keep it. */
+  try { localStorage.removeItem(OLD_LOCAL_KEY); } catch (e) {}
 
-  function save(code) {
+  /* A code arriving from a ?ref= link is remembered for the current visit only,
+     in sessionStorage, so an affiliate link still works when the customer
+     browses a few pages before checking out. It dies with the tab, and a code
+     typed by hand is never stored - so checkout is blank on a normal visit. */
+  function rememberReferral(code) {
     code = normalise(code);
     try {
-      if (code) localStorage.setItem(STORAGE_KEY, code);
-      else localStorage.removeItem(STORAGE_KEY);
+      if (code) sessionStorage.setItem(SESSION_KEY, code);
+      else sessionStorage.removeItem(SESSION_KEY);
     } catch (e) {}
     return code;
   }
 
-  function saved() {
-    try { return normalise(localStorage.getItem(STORAGE_KEY) || ''); }
+  function referralFromLink() {
+    try { return normalise(sessionStorage.getItem(SESSION_KEY) || ''); }
     catch (e) { return ''; }
+  }
+
+  function forgetReferral() {
+    try { sessionStorage.removeItem(SESSION_KEY); } catch (e) {}
   }
 
   function captureFromUrl() {
     try {
       var params = new URLSearchParams(window.location.search || '');
       var code = params.get('ref') || params.get('affiliate') || params.get('code') || '';
-      if (code) save(code);
+      if (code) rememberReferral(code);
     } catch (e) {}
+  }
+
+  function normalise(value) {
+    return String(value || '').trim().toUpperCase().replace(/[^A-Z0-9_-]/g, '').slice(0, 40);
   }
 
   function round2(n) { return Math.round(Number(n || 0) * 100) / 100; }
@@ -100,15 +115,15 @@
     return Number(rule.value || 0) + '% off';
   }
 
+  // Runs on every page, so the code is captured wherever the link lands.
   captureFromUrl();
 
   window.KL_AFFILIATES = {
     normalise: normalise,
-    save: save,
-    saved: saved,
+    referralFromLink: referralFromLink,
+    forgetReferral: forgetReferral,
     validate: validate,
     discountFor: discountFor,
-    describe: describe,
-    storageKey: STORAGE_KEY
+    describe: describe
   };
 })();

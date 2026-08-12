@@ -114,6 +114,11 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 .aff-actions button{border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
 .aff-actions button:hover{border-color:var(--gold,#d4af37)}
 .aff-actions button.danger{color:#b3261e}
+.aff-link{display:flex;gap:6px;align-items:center}
+.aff-link input{width:230px;min-width:150px;border:1px solid var(--line);border-radius:8px;background:#fff;padding:6px 9px;font:inherit;font-size:12px;color:var(--muted);cursor:text}
+.aff-link input:focus{outline:none;border-color:var(--gold,#d4af37);color:inherit}
+.aff-link button{border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.aff-link button:hover{border-color:var(--gold,#d4af37)}
 .chip-mini{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
 .account-detail{margin-top:22px;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(212,175,55,.06)}
 .account-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
@@ -671,6 +676,32 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     }).catch(function(){toast('Could not reach the server');});
   }
 
+  /* Built from the page's own origin, so it is correct on the live domain and
+     on a local test server without anything to configure. */
+  function referralLink(code){
+    return location.origin+'/?ref='+encodeURIComponent(code);
+  }
+
+  /* navigator.clipboard needs a secure context. Falls back to selecting the
+     field and using execCommand, which still works over plain http on a local
+     test server. */
+  function copyText(text,input){
+    function fallback(){
+      try{
+        if(input){input.focus();input.select();}
+        var ok=document.execCommand&&document.execCommand('copy');
+        if(input)input.setSelectionRange(0,0);
+        return !!ok;
+      }catch(e){return false;}
+    }
+    if(navigator.clipboard&&navigator.clipboard.writeText){
+      return navigator.clipboard.writeText(text)
+        .then(function(){return true;})
+        .catch(function(){return fallback();});
+    }
+    return Promise.resolve(fallback());
+  }
+
   function affByCode(code){
     for(var i=0;i<affiliateCodes.length;i++){if(affiliateCodes[i].code===code)return affiliateCodes[i];}
     return null;
@@ -684,19 +715,42 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
       wrap.innerHTML='<div class="empty">No codes yet. Add one above.</div>';
       return;
     }
-    wrap.innerHTML='<table><thead><tr><th>Code</th><th>Label</th><th>Discount</th><th>Status</th><th>Actions</th></tr></thead><tbody>'
+    wrap.innerHTML='<table><thead><tr><th>Code</th><th>Label</th><th>Discount</th><th>Status</th><th>Referral link</th><th>Actions</th></tr></thead><tbody>'
       +affiliateCodes.map(function(c){
+        var link=referralLink(c.code);
         return '<tr class="row'+(c.active?'':' aff-paused')+'">'
           +'<td class="ono">'+esc(c.code)+'</td>'
           +'<td>'+esc(c.label||'')+'</td>'
           +'<td class="amt">'+esc(affDescribe(c))+'</td>'
           +'<td>'+(c.active?'Active':'Paused')+'</td>'
+          +'<td><div class="aff-link"><input type="text" readonly value="'+esc(link)+'" data-aff-link="'+esc(c.code)+'" aria-label="Referral link for '+esc(c.code)+'">'
+          +'<button type="button" data-aff-copy="'+esc(c.code)+'">Copy</button></div></td>'
           +'<td><div class="aff-actions">'
           +'<button type="button" data-aff-edit="'+esc(c.code)+'">Edit</button>'
           +'<button type="button" data-aff-toggle="'+esc(c.code)+'">'+(c.active?'Pause':'Activate')+'</button>'
           +'<button type="button" class="danger" data-aff-delete="'+esc(c.code)+'">Delete</button>'
           +'</div></td></tr>';
       }).join('')+'</tbody></table>';
+
+    wrap.querySelectorAll('[data-aff-copy]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var code=this.dataset.affCopy;
+        var input=wrap.querySelector('[data-aff-link="'+code+'"]');
+        var btn=this;
+        copyText(referralLink(code),input).then(function(ok){
+          if(!ok){toast('Could not copy \u2014 select the link and copy it manually');return;}
+          var was=btn.textContent;
+          btn.textContent='Copied';
+          toast('Referral link for '+code+' copied');
+          setTimeout(function(){btn.textContent=was;},1400);
+        });
+      });
+    });
+
+    wrap.querySelectorAll('[data-aff-link]').forEach(function(f){
+      // Clicking the field selects the whole link, so it can be copied by hand.
+      f.addEventListener('focus',function(){this.select();});
+    });
 
     wrap.querySelectorAll('[data-aff-edit]').forEach(function(b){
       b.addEventListener('click',function(){

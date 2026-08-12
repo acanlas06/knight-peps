@@ -139,6 +139,7 @@ document.addEventListener('DOMContentLoaded',function(){
   // total cannot move until Apply Code is pressed. appliedAffiliateRule holds
   // what the server said the code is worth; the code list is not in this page.
   var appliedAffiliateRule=null;
+  var appliedFromLink=false;
   var affiliateBusy=false;
   var affiliateError='';
   function normaliseAffiliate(raw){return window.KL_AFFILIATES?window.KL_AFFILIATES.normalise(raw):String(raw||'').trim().toUpperCase();}
@@ -204,7 +205,7 @@ document.addEventListener('DOMContentLoaded',function(){
     return KL_SHIPPING_FEES[sel?sel.value:'']||{fee:0,label:'Shipping'};
   }
   function currentCheckoutSummary(){const cart=readCart();const itemCount=cart.reduce((n,i)=>n+(parseInt(i.qty,10)||0),0);const subtotal=cart.reduce((n,i)=>n+itemPrice(i)*(parseInt(i.qty,10)||0),0);const affiliate=window.KL_AFFILIATES?window.KL_AFFILIATES.discountFor(appliedAffiliateRule,subtotal):{valid:false,code:'',discountAmount:0,total:subtotal};const shipping=currentShippingFee();const goods=affiliate.valid?affiliate.total:subtotal;const total=Math.round((goods+(cart.length?shipping.fee:0))*100)/100;return{cart,itemCount,subtotal,total,affiliate,shipping,shippingFee:cart.length?shipping.fee:0};}
-function syncAffiliateUI(){const input=document.querySelector('#checkout-affiliate-code');const status=document.querySelector('#affiliate-status');if(input&&window.KL_AFFILIATES&&!input.dataset.affiliatePrefilled){var saved=window.KL_AFFILIATES.saved();if(saved&&!input.value)input.value=saved;input.dataset.affiliatePrefilled='1';}if(!status)return;const {affiliate}=currentCheckoutSummary();const typed=typedAffiliateCode();const applied=currentAffiliateCode();status.classList.remove('error');if(affiliateBusy){status.textContent='Checking code\u2026';return;}if(affiliateError){status.textContent=affiliateError;status.classList.add('error');return;}if(typed!==applied){status.textContent=typed?('Press Apply Code to use '+typed+'.'):'Press Apply Code to remove the current code.';return;}if(!affiliate.valid){status.textContent='Enter a promo or affiliate code if you have one.';return;}status.textContent='Code '+affiliate.code+' applied: '+window.KL_AFFILIATES.describe(appliedAffiliateRule)+' ('+money(affiliate.discountAmount)+' saved).';}
+function syncAffiliateUI(){const input=document.querySelector('#checkout-affiliate-code');const status=document.querySelector('#affiliate-status');if(!status)return;const {affiliate}=currentCheckoutSummary();const typed=typedAffiliateCode();const applied=currentAffiliateCode();status.classList.remove('error');if(affiliateBusy){status.textContent='Checking code\u2026';return;}if(affiliateError){status.textContent=affiliateError;status.classList.add('error');return;}if(typed!==applied){status.textContent=typed?('Press Apply Code to use '+typed+'.'):'Press Apply Code to remove the current code.';return;}if(!affiliate.valid){status.textContent='Enter a promo or affiliate code if you have one.';return;}status.textContent='Code '+affiliate.code+(appliedFromLink?' applied from your referral link: ':' applied: ')+window.KL_AFFILIATES.describe(appliedAffiliateRule)+' ('+money(affiliate.discountAmount)+' saved).';}
 function renderCheckout(){const {cart,itemCount,subtotal,total,affiliate,shipping,shippingFee}=currentCheckoutSummary();const root=document.querySelector('#checkout-items');document.querySelector('#checkout-count').textContent=itemCount;document.querySelector('#checkout-subtotal').textContent=money(subtotal);const discountRow=document.querySelector('#checkout-discount-row');if(discountRow){discountRow.style.display=affiliate.valid?'flex':'none';document.querySelector('#checkout-discount-label').textContent='Affiliate discount '+affiliate.code+' ('+window.KL_AFFILIATES.describe(affiliate)+')';document.querySelector('#checkout-discount').textContent='-'+money(affiliate.discountAmount);}(function(){var lbl=document.querySelector('#checkout-shipping-label'),amt=document.querySelector('#checkout-shipping-fee');if(lbl)lbl.textContent=shipping.label;if(amt)amt.textContent=shippingFee?money(shippingFee):(cart.length?'Free':money(0));})();document.querySelector('#checkout-total').textContent=money(total);syncAffiliateUI();root.innerHTML=cart.length?cart.map(item=>{const qty=Math.max(1,parseInt(item.qty,10)||1);return `<div class="mini-item"><b>${escapeHTML(KL_PRODUCTS[item.slug]?.name||item.name||item.slug)}</b><span>${escapeHTML(item.size)} · Qty ${qty} · ${money(itemPrice(item)*qty)}</span></div>`}).join(''):'<div class="notice-box">Your cart is empty. Add products before checkout.</div>';updateCartCount();}
 function currentUserEmail(){try{var d=localStorage.getItem('knightLabsLoggedIn');return d?(JSON.parse(d).email||''):'';}catch(e){return '';}}
 function savedAddresses(){var email=currentUserEmail();if(!email)return [];try{return JSON.parse(localStorage.getItem('knightLabsAddresses_'+email)||'[]');}catch(e){return [];}}
@@ -420,11 +421,14 @@ document.querySelector('#checkout-form').addEventListener('submit',event=>{event
 });
 renderCheckout();
 (function(){var input=document.querySelector('#checkout-affiliate-code');var apply=document.querySelector('#apply-affiliate-code');
-  function setApplied(rule){appliedAffiliateRule=rule;if(window.KL_AFFILIATES)window.KL_AFFILIATES.save(rule?rule.code:'');renderCheckout();}
+  function setApplied(rule){appliedAffiliateRule=rule;renderCheckout();}
   function applyCode(){
     if(affiliateBusy)return;
     var typed=typedAffiliateCode();
     affiliateError='';
+    // Typing a code by hand replaces the link's code and is not remembered.
+    appliedFromLink=false;
+    if(window.KL_AFFILIATES&&window.KL_AFFILIATES.forgetReferral)window.KL_AFFILIATES.forgetReferral();
     if(!typed){setApplied(null);return;}
     affiliateBusy=true;syncAffiliateUI();
     if(apply)apply.disabled=true;
@@ -442,14 +446,21 @@ renderCheckout();
     input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();applyCode();}});
   }
   if(apply)apply.addEventListener('click',applyCode);
-  /* Re-check a code remembered from a referral link or an earlier visit, so a
-     code that has since been paused or deleted stops discounting. */
+  /* A code from a ?ref= link applies automatically, so affiliate links work
+     even when the customer browses a few pages first. It lives in
+     sessionStorage, so it is gone once the tab closes. A code typed by hand is
+     never remembered, which is why the field is blank on a normal visit.
+     Revalidated here rather than trusted, so a code since paused or deleted
+     does not silently discount. */
   (function(){
-    var remembered=window.KL_AFFILIATES?window.KL_AFFILIATES.saved():'';
-    if(!remembered)return;
-    if(input&&!input.value)input.value=remembered;
-    window.KL_AFFILIATES.validate(remembered,currentCheckoutSummary().subtotal).then(function(rule){
-      if(rule)setApplied(rule);else{window.KL_AFFILIATES.save('');renderCheckout();}
+    var ref=window.KL_AFFILIATES?window.KL_AFFILIATES.referralFromLink():'';
+    if(!ref)return;
+    if(input&&!input.value)input.value=ref;
+    window.KL_AFFILIATES.validate(ref,currentCheckoutSummary().subtotal).then(function(rule){
+      if(rule){appliedFromLink=true;setApplied(rule);return;}
+      window.KL_AFFILIATES.forgetReferral();
+      if(input&&input.value===ref)input.value='';
+      renderCheckout();
     });
   })();
 })();
