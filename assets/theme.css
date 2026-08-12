@@ -283,3 +283,97 @@ html[data-theme="dark"] .wishlist-heart {
     box-shadow: inset 0 0 0 1px rgba(118, 85, 5, .18), 0 7px 18px rgba(118, 85, 5, .12) !important;
   }
 }
+
+/* ---------------------------------------------------------------------------
+   Header nav pills
+   ---------------------------------------------------------------------------
+   The Sign In, Cart and Browse Supply pills were plain inline anchors with
+   padding. Inline boxes wrap, so a crowded header broke their labels onto two
+   lines ("Sign / In") and dropped the cart badge below the word "Cart", which
+   reads as text sitting off-centre inside the pill.
+
+   inline-flex centres the label on both axes and nowrap keeps it on one line,
+   so each pill sizes to its content instead of squashing it.
+
+   Scoped to nav deliberately: the mobile menu reuses .account-link and needs
+   to stay a stacked list of block links.
+   --------------------------------------------------------------------------- */
+nav a.account-link,
+nav a.cart-link,
+nav a.nav-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+  line-height: 1.1;
+}
+
+/* Space the cart badge with gap so it cannot wrap; neutralise the older
+   margin-left, which would otherwise double the spacing. */
+nav a.cart-link { gap: 6px; }
+nav a.cart-link .cart-count { margin-left: 0 !important; }
+
+/* ---------------------------------------------------------------------------
+   Decorative overlays must not eat clicks
+   ---------------------------------------------------------------------------
+   Several sections draw decoration with an absolutely positioned :before or
+   :after (gold radial circles, grid patterns, corner labels). A positioned
+   generated box with no z-index paints above its non-positioned siblings, so
+   these were landing on top of real buttons and absorbing the click. The
+   button looked perfect and simply did nothing.
+
+   This already broke "Start Bulk Inquiry" on the desktop home page
+   (.wholesale-band:after) and "Email Support" at the foot of the support page
+   (.note-band:after). Both were invisible failures: no error, no cursor
+   change, nothing in the console.
+
+   Every one of these pseudo-elements is decorative - its content is either ""
+   or a static label - so none needs to be clickable. Pseudo-elements cannot
+   have JS listeners attached in any case; events on them bubble to the parent,
+   so passing the click through reaches the same element it would have hit.
+   --------------------------------------------------------------------------- */
+.hero:before,        .hero:after,
+.category:before,    .category:after,
+.card:before,        .card:after,
+.product-info:before,.product-info:after,
+.note-band:before,   .note-band:after,
+.cta-band:before,    .cta-band:after,
+.wholesale-band:before, .wholesale-band:after,
+.inquiry:before,     .inquiry:after,
+.dark:before,        .dark:after,
+.auth-tab.active:after,
+.address-card.is-primary:before {
+  pointer-events: none;
+}
+
+/* Keep real content above any decoration, so a future overlay cannot cover a
+   control even if someone forgets pointer-events. */
+.wholesale-band > *,
+.note-band > *,
+.cta-band > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---------------------------------------------------------------------------
+   Header must stack above page content (fixes the search suggestions)
+   ---------------------------------------------------------------------------
+   The search dropdown looked see-through with text tangled across it. Its own
+   background is fully opaque; the problem was paint order. Page content was
+   drawing on top of it.
+
+   .topbar sets position:relative with z-index, which makes it a stacking
+   context. .site-search sits inside, so its z-index:6 only ranks it against
+   its own siblings in the header - to the rest of the document the entire
+   header was just z-index 1-5. Section content such as .filters (5) and
+   .catalog-head (1, but later in the DOM) therefore painted over the panel.
+
+   Raising the header fixes it for every page in one place. The value clears
+   page content while staying below the overlays that must win: .sidebar (50),
+   .toast (60), .floating-cart (80) and .kl-compliance-gate (9999).
+
+   .mobile-menu is a sibling of the header, not a child, so it is lifted too;
+   otherwise it would slide underneath the newly raised header.
+   --------------------------------------------------------------------------- */
+.topbar { z-index: 30; }
+.mobile-menu { z-index: 31; }

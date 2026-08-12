@@ -104,8 +104,31 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
 @media(max-width:1200px){.tiles{grid-template-columns:repeat(3,minmax(0,1fr))}}
 @media(max-width:1000px){.tiles{grid-template-columns:repeat(2,minmax(0,1fr))}.items{display:none}th.col-items{display:none}}
 @media(max-width:680px){.tiles{grid-template-columns:1fr}td,th{padding-left:6px;padding-right:6px}}
+.affiliate-form{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.affiliate-form label{display:flex;flex-direction:column;gap:6px;font-size:12px;font-weight:900;color:var(--muted)}
+.affiliate-form input[type=text],.affiliate-form input[type=number],.affiliate-form select{border:1px solid var(--line);border-radius:10px;background:#fff;padding:9px 11px;font:inherit;font-size:14px;color:inherit;min-width:130px}
+.affiliate-form .affiliate-active{flex-direction:row;align-items:center;gap:7px;padding-bottom:10px}
+.affiliate-form .affiliate-active input{min-width:0}
+.aff-paused{opacity:.55}
+.aff-actions{display:flex;gap:8px;flex-wrap:wrap}
+.aff-actions button{border:1px solid var(--line);border-radius:999px;background:#fff;padding:6px 12px;font:inherit;font-size:12px;font-weight:900;cursor:pointer}
+.aff-actions button:hover{border-color:var(--gold,#d4af37)}
+.aff-actions button.danger{color:#b3261e}
+.chip-mini{display:inline-block;margin-left:6px;padding:2px 8px;border-radius:999px;border:1px solid var(--line);font-size:10px;font-weight:900;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}
+.account-detail{margin-top:22px;padding:20px;border:1px solid var(--line);border-radius:16px;background:rgba(212,175,55,.06)}
+.account-detail-head{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:16px}
+.account-detail-head button{border:1px solid var(--line);border-radius:999px;background:transparent;padding:7px 14px;font:inherit;font-size:12px;font-weight:900;cursor:pointer;color:inherit}
+.account-facts{display:flex;flex-wrap:wrap;gap:22px}
+.account-facts>div{display:flex;flex-direction:column;gap:3px}
+.account-facts span{font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.account-facts b{font-size:16px}
+.account-address{margin-top:18px;font-size:14px;line-height:1.6}
+.account-address span{display:block;font-size:11px;font-weight:900;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+.account-row:hover{background:rgba(212,175,55,.08)}
+.btn-affiliate-save{background:linear-gradient(135deg,var(--gold2),var(--gold));border:1px solid var(--gold3);color:#090703;border-radius:999px;padding:10px 20px;font:inherit;font-size:13px;font-weight:950;cursor:pointer;white-space:nowrap;transition:transform .15s,box-shadow .15s,filter .15s}
+.btn-affiliate-save:hover:not(:disabled){transform:translateY(-1px);box-shadow:0 10px 24px rgba(212,175,55,.3)}
+.btn-affiliate-save:disabled{filter:grayscale(.7);opacity:.6;cursor:not-allowed;transform:none}
 </style><link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
-<link rel="stylesheet" href="assets/site-search.css">
 </head><body>
 
 <div class="topbar">
@@ -139,7 +162,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     <div class="tabs">
       <button class="tab active" id="tabOrders" data-tab="orders">Orders</button>
       <button class="tab" id="tabProducts" data-tab="products">Products<span class="badge" id="soldOutBadge">0</span></button>
-      <button class="tab" id="tabReferrals" data-tab="referrals">Referral codes<span class="badge" id="referralBadge">0</span></button>
+      <button class="tab" id="tabAccounts" data-tab="accounts">Accounts</button><button class="tab" id="tabReferrals" data-tab="referrals">Referral codes<span class="badge" id="referralBadge">0</span></button>
     </div>
 
     <div class="panel">
@@ -163,7 +186,29 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
       <div id="productsWrap"></div>
     </div>
 
+    <div class="panel" id="accountsPanel" style="display:none">
+      <p class="sub" style="margin-bottom:16px">Everyone who has ordered or registered. Click a row for their full history. Passwords are never shown or sent here \u2014 only their order record.</p>
+      <div id="accountsWrap"></div>
+      <div id="accountDetail" style="display:none"></div>
+    </div>
+
     <div class="panel" id="referralsPanel" style="display:none">
+      <h3 style="margin:0 0 6px;font-size:16px">Codes</h3>
+      <p class="sub" style="margin-bottom:14px">Codes take effect as soon as they are saved \u2014 no deploy needed. Customers never see this list; the site checks one code at a time.</p>
+
+      <div class="affiliate-form" id="affiliateForm">
+        <label>Code<input id="affCode" type="text" placeholder="SUMMER15" maxlength="40" autocomplete="off"></label>
+        <label>Label<input id="affLabel" type="text" placeholder="Summer promo" maxlength="80" autocomplete="off"></label>
+        <label>Type<select id="affType"><option value="percent">% off</option><option value="amount">$ off</option></select></label>
+        <label>Amount<input id="affValue" type="number" step="0.01" min="0" placeholder="15"></label>
+        <label class="affiliate-active"><input id="affActive" type="checkbox" checked> Active</label>
+        <button class="btn-affiliate-save" type="button" id="affSave">Save Code</button>
+      </div>
+      <p class="sub" id="affHint" style="margin:10px 0 22px">A percentage must be between 0 and 100. A fixed amount is capped at the order subtotal, so a total can never go below zero.</p>
+
+      <div id="affiliateCodesWrap"></div>
+
+      <h3 style="margin:26px 0 6px;font-size:16px">Sales by code</h3>
       <p class="sub" style="margin-bottom:16px">Referral sales are calculated from stored orders. Cancelled orders are separated out and not counted in revenue or vial totals.</p>
       <div id="referralsWrap"></div>
     </div>
@@ -489,6 +534,238 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();
   });
 
+  /* ---------- customer accounts ---------- */
+
+  var accountList=[];
+  var accountsLoaded=false;
+  var openAccount='';
+
+  function loadAccounts(){
+    return post('/api/admin/accounts',{}).then(function(r){
+      if(r.status===401){showGate();return;}
+      if(!r.data.ok){
+        toast(r.status===404
+          ? 'This server is running older code and has no accounts view yet. Restart it, then reload.'
+          : 'Could not load accounts');
+        return;
+      }
+      accountList=r.data.accounts||[];
+      accountsLoaded=true;
+      renderAccounts();
+    }).catch(function(){toast('Could not reach the server');});
+  }
+
+  function shortDate(v){return v?String(v).slice(0,10):'\u2014';}
+
+  function renderAccounts(){
+    var wrap=document.getElementById('accountsWrap');
+    var detail=document.getElementById('accountDetail');
+    if(!wrap)return;
+    if(!accountsLoaded){wrap.innerHTML='<div class="empty">Loading accounts\u2026</div>';return;}
+    if(!accountList.length){wrap.innerHTML='<div class="empty">No accounts or orders yet.</div>';return;}
+
+    wrap.innerHTML='<table><thead><tr><th>Email</th><th>Name</th><th>Registered</th>'
+      +'<th>Orders</th><th>Ordered</th><th>Collected</th><th>Last order</th></tr></thead><tbody>'
+      +accountList.map(function(a){
+        var tags=(a.isAdmin?' <span class="chip-mini">admin</span>':'')
+                +(a.hasAccount?'':' <span class="chip-mini">guest</span>');
+        return '<tr class="row account-row" data-account="'+esc(a.email)+'" style="cursor:pointer">'
+          +'<td class="ono">'+esc(a.email)+tags+'</td>'
+          +'<td>'+esc(a.name||'\u2014')+'</td>'
+          +'<td>'+esc(shortDate(a.createdAt))+'</td>'
+          +'<td class="amt">'+(a.orderCount||0)+(a.cancelledCount?' <span style="color:var(--muted)">(+'+a.cancelledCount+' cancelled)</span>':'')+'</td>'
+          +'<td class="amt">'+money(a.ordered||0)+'</td>'
+          +'<td class="amt">'+money(a.collected||0)+'</td>'
+          +'<td>'+esc(shortDate(a.lastOrderAt))+'</td></tr>';
+      }).join('')+'</tbody></table>';
+
+    wrap.querySelectorAll('.account-row').forEach(function(row){
+      row.addEventListener('click',function(){
+        openAccount=this.dataset.account;
+        renderAccountDetail();
+      });
+    });
+    if(openAccount)renderAccountDetail();else if(detail)detail.style.display='none';
+  }
+
+  function accountByEmail(email){
+    for(var i=0;i<accountList.length;i++){if(accountList[i].email===email)return accountList[i];}
+    return null;
+  }
+
+  function renderAccountDetail(){
+    var detail=document.getElementById('accountDetail');
+    var a=accountByEmail(openAccount);
+    if(!detail)return;
+    if(!a){detail.style.display='none';return;}
+    detail.style.display='block';
+    var addr=null;
+    for(var i=0;i<(a.orders||[]).length;i++){if(a.orders[i].shippingAddress){addr=a.orders[i].shippingAddress;break;}}
+    detail.innerHTML='<div class="account-detail">'
+      +'<div class="account-detail-head"><div><b>'+esc(a.email)+'</b>'
+      +'<div class="sub">'+esc(a.name||'No name on file')+(a.phone?' \u00b7 '+esc(a.phone):'')+'</div></div>'
+      +'<button type="button" id="closeAccountDetail">Close</button></div>'
+      +'<div class="account-facts">'
+      +'<div><span>Registered</span><b>'+esc(a.hasAccount?shortDate(a.createdAt):'Guest \u2014 no account')+'</b></div>'
+      +'<div><span>Orders</span><b>'+(a.orderCount||0)+'</b></div>'
+      +'<div><span>Cancelled</span><b>'+(a.cancelledCount||0)+'</b></div>'
+      +'<div><span>Ordered</span><b>'+money(a.ordered||0)+'</b></div>'
+      +'<div><span>Collected</span><b>'+money(a.collected||0)+'</b></div>'
+      +'</div>'
+      +(addr?'<div class="account-address"><span>Most recent address</span><div>'
+        +esc(addr.name||'')+'<br>'+esc(addr.street||'')+'<br>'
+        +esc(addr.city||'')+', '+esc(addr.state||'')+' '+esc(addr.zip||'')+'<br>'
+        +esc(addr.country||'')+'</div></div>':'')
+      +((a.orders||[]).length
+        ? '<table style="margin-top:18px"><thead><tr><th>Order</th><th>Date</th><th>Status</th>'
+          +'<th>Fulfillment</th><th>Payment</th><th>Code</th><th>Items</th><th>Total</th></tr></thead><tbody>'
+          +a.orders.map(function(o){
+            return '<tr class="row"><td class="ono">'+esc(o.orderNumber||'')+'</td>'
+              +'<td>'+esc(shortDate(o.placedAt))+'</td>'
+              +'<td>'+esc(o.status||'')+'</td>'
+              +'<td>'+esc(o.shippingMethod||'')+'</td>'
+              +'<td>'+esc(o.paymentPreference||'')+'</td>'
+              +'<td>'+esc(o.affiliate||'\u2014')+'</td>'
+              +'<td class="amt">'+(o.itemCount||0)+'</td>'
+              +'<td class="amt">'+money(o.total||0)+'</td></tr>'
+              +'<tr><td colspan="8" style="padding-top:0;color:var(--muted);font-size:12.5px">'
+              +(o.items||[]).map(function(i){return esc(i.name)+' '+esc(i.size)+' \u00d7'+(i.qty||0);}).join(' \u00b7 ')
+              +'</td></tr>';
+          }).join('')+'</tbody></table>'
+        : '<div class="empty" style="margin-top:16px">No orders for this customer.</div>')
+      +'</div>';
+    var close=document.getElementById('closeAccountDetail');
+    if(close)close.addEventListener('click',function(){openAccount='';detail.style.display='none';});
+    detail.scrollIntoView({behavior:'smooth',block:'nearest'});
+  }
+
+  /* ---------- referral-code management ---------- */
+
+  var affiliateCodes=[];
+  var affiliatesLoaded=false;
+
+  function affDescribe(rule){
+    if(!rule)return '';
+    return rule.type==='amount'
+      ? '$'+Number(rule.value||0).toFixed(2)+' off'
+      : Number(rule.value||0)+'% off';
+  }
+
+  /* A 404 here means the running server predates these endpoints, which is by
+     far the most common cause and is not obvious from a generic failure. */
+  function affApiError(r,fallback){
+    if(r.status===404)return 'This server is running older code and has no referral-code support yet. Restart it, then reload this page.';
+    return {invalid_code:'Enter a code using only letters, numbers, dash or underscore.',
+            invalid_rule:'Check the amount: a percentage must be between 0 and 100, a dollar amount above 0.',
+            too_many_codes:'Too many codes. Delete an unused one first.',
+            not_authorised:'Your admin session expired. Sign in again.'}[r.data&&r.data.code]||fallback;
+  }
+
+  function loadAffiliates(){
+    return post('/api/admin/affiliates',{}).then(function(r){
+      if(r.status===401){showGate();return;}
+      if(!r.data.ok){toast(affApiError(r,'Could not load referral codes'));return;}
+      affiliateCodes=r.data.codes||[];
+      affiliatesLoaded=true;
+      renderAffiliateCodes();
+    }).catch(function(){toast('Could not reach the server');});
+  }
+
+  function affByCode(code){
+    for(var i=0;i<affiliateCodes.length;i++){if(affiliateCodes[i].code===code)return affiliateCodes[i];}
+    return null;
+  }
+
+  function renderAffiliateCodes(){
+    var wrap=document.getElementById('affiliateCodesWrap');
+    if(!wrap)return;
+    if(!affiliatesLoaded){wrap.innerHTML='<div class="empty">Loading codes\u2026</div>';return;}
+    if(!affiliateCodes.length){
+      wrap.innerHTML='<div class="empty">No codes yet. Add one above.</div>';
+      return;
+    }
+    wrap.innerHTML='<table><thead><tr><th>Code</th><th>Label</th><th>Discount</th><th>Status</th><th>Actions</th></tr></thead><tbody>'
+      +affiliateCodes.map(function(c){
+        return '<tr class="row'+(c.active?'':' aff-paused')+'">'
+          +'<td class="ono">'+esc(c.code)+'</td>'
+          +'<td>'+esc(c.label||'')+'</td>'
+          +'<td class="amt">'+esc(affDescribe(c))+'</td>'
+          +'<td>'+(c.active?'Active':'Paused')+'</td>'
+          +'<td><div class="aff-actions">'
+          +'<button type="button" data-aff-edit="'+esc(c.code)+'">Edit</button>'
+          +'<button type="button" data-aff-toggle="'+esc(c.code)+'">'+(c.active?'Pause':'Activate')+'</button>'
+          +'<button type="button" class="danger" data-aff-delete="'+esc(c.code)+'">Delete</button>'
+          +'</div></td></tr>';
+      }).join('')+'</tbody></table>';
+
+    wrap.querySelectorAll('[data-aff-edit]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var c=affByCode(this.dataset.affEdit);
+        if(!c)return;
+        document.getElementById('affCode').value=c.code;
+        document.getElementById('affLabel').value=c.label||'';
+        document.getElementById('affType').value=c.type||'percent';
+        document.getElementById('affValue').value=c.value;
+        document.getElementById('affActive').checked=!!c.active;
+        document.getElementById('affCode').focus();
+      });
+    });
+    wrap.querySelectorAll('[data-aff-toggle]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var c=affByCode(this.dataset.affToggle);
+        if(!c)return;
+        saveAffiliate({code:c.code,label:c.label,type:c.type,value:c.value,active:!c.active});
+      });
+    });
+    wrap.querySelectorAll('[data-aff-delete]').forEach(function(b){
+      b.addEventListener('click',function(){
+        var code=this.dataset.affDelete;
+        // Deleting only stops future use; orders already placed keep the
+        // discount they were given, so this does not rewrite history.
+        if(!window.confirm('Delete code '+code+'? Orders already placed keep their discount, but the code will stop working.'))return;
+        post('/api/admin/affiliate-delete',{code:code}).then(function(r){
+          if(r.status===401){showGate();return;}
+          if(!r.data.ok){toast(affApiError(r,'Could not delete '+code));return;}
+          toast(code+' deleted');
+          loadAffiliates();loadStats();
+        }).catch(function(){toast('Could not reach the server');});
+      });
+    });
+  }
+
+  function saveAffiliate(payload){
+    var btn=document.getElementById('affSave');
+    if(btn)btn.disabled=true;
+    return post('/api/admin/affiliate-save',payload).then(function(r){
+      if(r.status===401){showGate();return;}
+      if(!r.data.ok){toast(affApiError(r,'Could not save the code'));return;}
+      toast(payload.code+' saved');
+      document.getElementById('affCode').value='';
+      document.getElementById('affLabel').value='';
+      document.getElementById('affValue').value='';
+      document.getElementById('affActive').checked=true;
+      loadAffiliates();loadStats();
+    }).catch(function(){toast('Could not reach the server');})
+      .finally(function(){if(btn)btn.disabled=false;});
+  }
+
+  (function(){
+    var btn=document.getElementById('affSave');
+    if(!btn)return;
+    btn.addEventListener('click',function(){
+      var code=(document.getElementById('affCode').value||'').trim().toUpperCase().replace(/[^A-Z0-9_-]/g,'');
+      if(!code){toast('Enter a code');return;}
+      var raw=(document.getElementById('affValue').value||'').trim();
+      var value=parseFloat(raw);
+      if(raw===''||isNaN(value)){toast('Enter the discount amount');return;}
+      var type=document.getElementById('affType').value;
+      if(type==='percent'&&(value<=0||value>=100)){toast('A percentage must be between 0 and 100');return;}
+      if(type==='amount'&&value<=0){toast('A dollar amount must be above 0');return;}
+      saveAffiliate({code:code,label:(document.getElementById('affLabel').value||'').trim(),
+                     type:type,value:value,active:document.getElementById('affActive').checked});
+    });
+  })();
+
   /* ---------- referral-code sales ---------- */
 
   function renderReferrals(){
@@ -505,7 +782,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
       +'</tr></thead><tbody>'
       +referrals.map(function(r){
         return '<tr class="row"><td class="ono">'+esc(r.code)+'<div style="color:var(--muted);font-size:12px;font-weight:400">'+esc(r.label||'')+'</div></td>'
-          +'<td class="amt">'+esc(String(r.percent||0))+'%</td>'
+          +'<td class="amt">'+esc(r.type==='amount'?('$'+Number(r.value||0).toFixed(2)+' off'):(Number(r.value||r.percent||0)+'%'))+'</td>'
           +'<td class="amt">'+(r.orderCount||0)+'</td>'
           +'<td class="amt">'+(r.unitsOrdered||0)+'</td>'
           +'<td class="amt">'+money(r.subtotal||0)+'</td>'
@@ -639,16 +916,20 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
     document.getElementById('tabOrders').classList.toggle('active',activeTab==='orders');
     document.getElementById('tabProducts').classList.toggle('active',activeTab==='products');
     document.getElementById('tabReferrals').classList.toggle('active',activeTab==='referrals');
+    document.getElementById('tabAccounts').classList.toggle('active',activeTab==='accounts');
     var showProducts=activeTab==='products';
     var showReferrals=activeTab==='referrals';
+    var showAccounts=activeTab==='accounts';
     document.getElementById('productsPanel').style.display=showProducts?'block':'none';
     document.getElementById('referralsPanel').style.display=showReferrals?'block':'none';
-    document.querySelector('#tableWrap').closest('.panel').style.display=(showProducts||showReferrals)?'none':'block';
+    document.getElementById('accountsPanel').style.display=showAccounts?'block':'none';
+    document.querySelector('#tableWrap').closest('.panel').style.display=(showProducts||showReferrals||showAccounts)?'none':'block';
   }
   function renderAll(){
     renderTabs();
     if(activeTab==='products'){renderProducts();return;}
-    if(activeTab==='referrals'){renderReferrals();return;}
+    if(activeTab==='accounts'){renderAccounts();if(!accountsLoaded)loadAccounts();return;}
+    if(activeTab==='referrals'){renderAffiliateCodes();if(!affiliatesLoaded)loadAffiliates();renderReferrals();return;}
     renderChips();renderTable();
   }
 
@@ -692,5 +973,4 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
   });
 })();
 </script>
-  <script src="assets/site-search.js" defer></script>
-</body></html>
+  </body></html>

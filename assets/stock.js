@@ -32,7 +32,9 @@
     'epithalon': ['10mg', '50mg'],
     'semax': ['10mg'],
     'selank': ['10mg'],
-    'ghk-cu': ['50mg']
+    'ghk-cu': ['50mg'],
+    'tesamorelin': ['2mg', '5mg', '10mg', '20mg'],
+    'bac-water': ['3ml', '10ml']
   };
 
 

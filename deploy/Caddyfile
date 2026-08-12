@@ -24,11 +24,31 @@ __DOMAIN__, www.__DOMAIN__ {
 		X-Robots-Tag "noindex"
 	}
 
+	# Pages and shared scripts must never be cached past a deploy.
+	#
+	# The scripts in /assets are not fingerprinted, so a browser holding an old
+	# copy alongside a freshly deployed page will call a function that does not
+	# exist yet and abandon the render. That is exactly how the order-received
+	# page came to hang on "Loading order details".
+	#
+	# no-cache does not mean "do not store": the browser revalidates and gets a
+	# cheap 304 when nothing changed, so this costs almost nothing.
+	@revalidate {
+		path *.html *.js *.css /
+	}
+	header @revalidate Cache-Control "no-cache"
+
+	# Images and fonts are safe to cache; they are replaced rather than edited.
+	@static {
+		path *.png *.jpg *.jpeg *.svg *.ico *.webp *.woff *.woff2
+	}
+	header @static Cache-Control "public, max-age=604800"
+
 	# Data files must never be reachable over HTTP, even if one is ever placed
 	# in the app directory by mistake.
 	@blocked {
 		path /accounts.json /orders.json /inventory.json /analytics.json
-		path /smtp-config.json /admin-config.json
+		path /smtp-config.json /admin-config.json /affiliates.json
 		path /outbox/* /deploy/* /.git/* /*.py /*.bat /*.sh
 	}
 	respond @blocked 404

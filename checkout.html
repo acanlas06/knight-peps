@@ -72,10 +72,11 @@
 .product-info:after{display:none!important}
 @media(max-width:680px){.card,.supply-card,.category{padding-top:52px!important}.card:before,.supply-card:before,.category:before{height:34px;padding:0 18px;font-size:9px}}
 
+.field-hint{margin-top:6px;color:var(--muted,#716958);font-size:12.5px;font-weight:700;min-height:1px}
 </style>  <link rel="stylesheet" href="assets/compliance-gate.css">
 <link rel="stylesheet" href="assets/site-search.css">
 <link rel="stylesheet" href="assets/theme.css"><script src="assets/theme.js"></script><script src="assets/affiliate.js"></script>
-</head><body><div class="hero"><header class="wrap topbar"><a class="brand" href="index.html"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></a><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="supply-categories.html">Shop</a><a href="about.html">About</a><a href="index.html#wholesale">Wholesale</a><a href="support.html">Support</a><a class="account-link" href="account.html">Sign In</a><a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a><a class="nav-cta" href="supply-categories.html">Continue Shopping</a></nav></header><div class="wrap hero-inner"><div><div class="breadcrumb"><a href="cart.html">Cart</a><span>/</span><span>Checkout</span></div><div class="kicker">Checkout</div><h1>Checkout.</h1><p class="lead">Customer information, fulfillment preference, order summary, and research-use acknowledgment.</p></div></div></div><section><div class="wrap checkout-layout"><form class="checkout-panel" id="checkout-form" novalidate><div class="section-head"><div><div class="kicker" style="color:#967016">Customer Details</div><h2 class="title">Checkout information.</h2><p>Submit the order request here. No payment is collected on this website; after availability is confirmed, Knight Labs will send final total and payment instructions directly. Zelle can be used as a private post-confirmation option when available.</p></div></div><div class="notice-box" id="checkout-errors" role="alert" style="display:none;margin-bottom:18px;color:#7a2500;border-color:#d6a166;background:#fff4e9"></div><div class="form-grid"><div class="field"><label for="checkout-email">Email</label><input id="checkout-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div class="field"><label for="checkout-name">Full name</label><input id="checkout-name" name="name" autocomplete="name" placeholder="First and last name" required></div><div class="field"><label for="checkout-phone">Phone</label><input id="checkout-phone" name="phone" autocomplete="tel" placeholder="Optional"></div><div class="field"><label for="checkout-shipping-method">Fulfillment preference</label><select id="checkout-shipping-method" name="shippingMethod" required><option value="Coordinate directly">Coordinate directly</option><option value="Local pickup">Local pickup</option><option value="Local delivery">Local delivery</option><option value="Shipping by arrangement">Shipping by arrangement</option></select></div><div class="field"><label for="checkout-payment-preference">Payment coordination</label><select id="checkout-payment-preference" name="paymentPreference" required><option value="Zelle after confirmation">Zelle after confirmation</option><option value="Cash on pickup/delivery">Cash on pickup/delivery</option></select></div></div>
+</head><body><div class="hero"><header class="wrap topbar"><a class="brand" href="index.html"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></a><nav aria-label="Primary navigation"><a href="index.html">Home</a><a href="supply-categories.html">Shop</a><a href="about.html">About</a><a href="index.html#wholesale">Wholesale</a><a href="support.html">Support</a><a class="account-link" href="account.html">Sign In</a><a class="cart-link" href="cart.html">Cart <span class="cart-count" data-cart-count>0</span></a><a class="nav-cta" href="supply-categories.html">Continue Shopping</a></nav></header><div class="wrap hero-inner"><div><div class="breadcrumb"><a href="cart.html">Cart</a><span>/</span><span>Checkout</span></div><div class="kicker">Checkout</div><h1>Checkout.</h1><p class="lead">Customer information, fulfillment preference, order summary, and research-use acknowledgment.</p></div></div></div><section><div class="wrap checkout-layout"><form class="checkout-panel" id="checkout-form" novalidate><div class="section-head"><div><div class="kicker" style="color:#967016">Customer Details</div><h2 class="title">Checkout information.</h2><p>Submit the order request here. No payment is collected on this website; after availability is confirmed, Knight Labs will send final total and payment instructions directly. Zelle can be used as a private post-confirmation option when available.</p></div></div><div class="notice-box" id="checkout-errors" role="alert" style="display:none;margin-bottom:18px;color:#7a2500;border-color:#d6a166;background:#fff4e9"></div><div class="form-grid"><div class="field"><label for="checkout-email">Email</label><input id="checkout-email" name="email" type="email" autocomplete="email" placeholder="you@example.com" required></div><div class="field"><label for="checkout-name">Full name</label><input id="checkout-name" name="name" autocomplete="name" placeholder="First and last name" required></div><div class="field"><label for="checkout-phone">Phone</label><input id="checkout-phone" name="phone" type="tel" autocomplete="tel" placeholder="(407) 555-0123" required><p class="field-hint">Used to reach you about availability, delivery or pickup.</p></div></div>
 
 <div id="saved-address-block" style="display:none;margin-top:26px">
   <div class="kicker" style="color:#967016;margin-bottom:10px">Saved Addresses</div>
@@ -101,8 +102,13 @@
     <div class="field"><label for="checkout-affiliate-code">Promo / affiliate code</label><input id="checkout-affiliate-code" name="affiliateCode" autocomplete="off"></div>
     <button class="btn secondary" type="button" id="apply-affiliate-code">Apply Code</button>
   </div>
-  <div class="affiliate-status" id="affiliate-status" aria-live="polite">Use code TGOMEZ or AC for 15% off.</div>
-</div><label class="checkline"><input id="checkout-ack" name="ack" type="checkbox" required> <span>I understand these products are for research and laboratory use only and are not intended for human or veterinary consumption.</span></label><div class="notice-box" style="margin-top:14px"><b>Payment note:</b> This site does not collect payment. If Zelle is selected, payment details are sent only after availability and final total are confirmed.</div><div class="card-actions"><button class="btn primary" type="submit" id="checkout-submit" disabled title="Confirm the research-use acknowledgment to continue">Submit Order Request</button><a class="btn secondary" href="cart.html">Back to Cart</a></div></form><aside class="summary"><div class="kicker">Order Summary</div><h2 style="font-size:34px;letter-spacing:-.05em">Review order</h2><div class="checkout-items" id="checkout-items"></div><div class="summary-row"><span>Total items</span><b id="checkout-count">0</b></div><div class="summary-row"><span>Subtotal</span><b id="checkout-subtotal">$0</b></div><div class="summary-row"><span>Shipping</span><b>TBD</b></div><div class="summary-row discount" id="checkout-discount-row" style="display:none"><span id="checkout-discount-label">Affiliate discount</span><b id="checkout-discount">-$0</b></div><div class="summary-row"><span>Total</span><b class="summary-total" id="checkout-total">$0</b></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
+  <div class="affiliate-status" id="affiliate-status" aria-live="polite">Enter a promo or affiliate code if you have one.</div>
+</div>
+  <div class="kicker" style="color:#967016;margin:26px 0 10px">Fulfillment</div>
+  <div class="field"><label for="checkout-shipping-method">Fulfillment preference</label><select id="checkout-shipping-method" name="shippingMethod" required><option value="FedEx 3-7 days">FedEx 3-7 days</option><option value="Local delivery">Local delivery</option><option value="Local pickup">Local pickup</option></select><p class="field-hint" id="fulfillment-hint"></p></div>
+  <div class="kicker" style="color:#967016;margin:26px 0 10px">Payment</div>
+  <div class="field"><label for="checkout-payment-preference">Payment</label><select id="checkout-payment-preference" name="paymentPreference" required><option value="Zelle after confirmation">Zelle after confirmation</option><option value="Cash on pickup/delivery">Cash on pickup/delivery</option></select><p class="field-hint" id="payment-hint"></p></div>
+<label class="checkline"><input id="checkout-ack" name="ack" type="checkbox" required> <span>I understand these products are for research and laboratory use only and are not intended for human or veterinary consumption.</span></label><div class="notice-box" style="margin-top:14px"><b>Payment note:</b> This site does not collect payment. If Zelle is selected, payment details are sent only after availability and final total are confirmed.</div><div class="card-actions"><button class="btn primary" type="submit" id="checkout-submit" disabled title="Confirm the research-use acknowledgment to continue">Submit Order Request</button><a class="btn secondary" href="cart.html">Back to Cart</a></div></form><aside class="summary"><div class="kicker">Order Summary</div><h2 style="font-size:34px;letter-spacing:-.05em">Review order</h2><div class="checkout-items" id="checkout-items"></div><div class="summary-row"><span>Total items</span><b id="checkout-count">0</b></div><div class="summary-row"><span>Subtotal</span><b id="checkout-subtotal">$0</b></div><div class="summary-row"><span id="checkout-shipping-label">Shipping</span><b id="checkout-shipping-fee">$0</b></div><div class="summary-row discount" id="checkout-discount-row" style="display:none"><span id="checkout-discount-label">Affiliate discount</span><b id="checkout-discount">-$0</b></div><div class="summary-row"><span>Total</span><b class="summary-total" id="checkout-total">$0</b></div></aside></div></section><footer class="footer"><div class="wrap"><div class="footer-logo"><img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs crest"><span>Knight Labs</span></div><p>For research and laboratory use only. Not intended for human or veterinary consumption.</p></div></footer>
 <script>
 const KL_PRODUCTS={"retatrutide": {"name": "Retatrutide","sizes": ["10mg","20mg","30mg"]},"tirzepatide": {"name": "Tirzepatide","sizes": ["10mg","20mg","30mg"]},"semaglutide": {"name": "Semaglutide","sizes": ["5mg","10mg"]},"bpc-157": {"name": "BPC-157","sizes": ["10mg"]},"tb500": {"name": "TB500","sizes": ["10mg"]},"bpc-157-tb500-blend": {"name": "BPC-157 + TB500 Blend","sizes": ["5mg + 5mg","10mg + 10mg"]},"cjc-1295-without-dac-ipamorelin": {"name": "CJC-1295 without DAC + Ipamorelin","sizes": ["5mg + 5mg","10mg + 10mg"]},"ipamorelin": {"name": "Ipamorelin","sizes": ["5mg","10mg"]},"cjc-1295-without-dac-mod-grf-1-29": {"name": "CJC-1295 without DAC / Mod GRF 1-29","sizes": ["2mg","5mg"]},"nad": {"name": "NAD+","sizes": ["500mg"]},"glutathione": {"name": "Glutathione","sizes": ["600mg","1200mg"]},"epithalon": {"name": "Epithalon","sizes": ["10mg","50mg"]},"semax": {"name": "Semax","sizes": ["10mg"]},"selank": {"name": "Selank","sizes": ["10mg"]},"ghk-cu": {"name": "GHK-CU","sizes": ["50mg"]},"tesamorelin": {"name": "Tesamorelin","sizes": ["2mg","5mg","10mg","20mg"]},"bac-water": {"name": "BAC Water","sizes": ["3ml","10ml"]}};
 const KL_PRICES={"retatrutide": {"10mg": 75,"20mg": 140,"30mg": 180},"tirzepatide": {"10mg": 60,"20mg": 80,"30mg": 100},"semaglutide": {"5mg": 35,"10mg": 50},"bpc-157": {"10mg": 45},"tb500": {"10mg": 50},"bpc-157-tb500-blend": {"5mg + 5mg": 89,"10mg + 10mg": 149},"cjc-1295-without-dac-ipamorelin": {"5mg + 5mg": 99,"10mg + 10mg": 169},"ipamorelin": {"5mg": 49,"10mg": 79},"cjc-1295-without-dac-mod-grf-1-29": {"2mg": 45,"5mg": 79},"nad": {"500mg": 55},"glutathione": {"600mg": 69,"1200mg": 119},"epithalon": {"10mg": 59,"50mg": 199},"semax": {"10mg": 45},"selank": {"10mg": 45},"ghk-cu": {"50mg": 40},"tesamorelin": {"2mg": 45,"5mg": 75,"10mg": 100,"20mg": 175},"bac-water": {"3ml": 10,"10ml": 15}};
@@ -129,10 +135,77 @@ document.addEventListener('DOMContentLoaded',function(){
 });
 </script>
 <script>
-function currentAffiliateCode(){var input=document.querySelector('#checkout-affiliate-code');var raw=input?input.value:'';return window.KL_AFFILIATES?window.KL_AFFILIATES.normalise(raw):String(raw||'').trim().toUpperCase();}
-function currentCheckoutSummary(){const cart=readCart();const itemCount=cart.reduce((n,i)=>n+(parseInt(i.qty,10)||0),0);const subtotal=cart.reduce((n,i)=>n+itemPrice(i)*(parseInt(i.qty,10)||0),0);const code=currentAffiliateCode();const affiliate=window.KL_AFFILIATES?window.KL_AFFILIATES.preview(code,subtotal):{valid:false,code:code,discountAmount:0,total:subtotal};const total=affiliate.valid?affiliate.total:subtotal;return{cart,itemCount,subtotal,total,affiliate};}
-function syncAffiliateUI(){const input=document.querySelector('#checkout-affiliate-code');const status=document.querySelector('#affiliate-status');if(input&&window.KL_AFFILIATES&&!input.dataset.affiliatePrefilled){var saved=window.KL_AFFILIATES.saved();if(saved&&!input.value)input.value=saved;input.dataset.affiliatePrefilled='1';}const {affiliate}=currentCheckoutSummary();if(!status)return;status.classList.remove('error');if(!affiliate.code){status.textContent='Enter a promo or affiliate code if you have one.';return;}if(affiliate.valid){status.textContent='Code '+affiliate.code+' applied: '+affiliate.percent+'% off ('+money(affiliate.discountAmount)+' saved).';if(window.KL_AFFILIATES)window.KL_AFFILIATES.save(affiliate.code);}else{status.textContent='Code '+affiliate.code+' is not active.';status.classList.add('error');}}
-function renderCheckout(){const {cart,itemCount,subtotal,total,affiliate}=currentCheckoutSummary();const root=document.querySelector('#checkout-items');document.querySelector('#checkout-count').textContent=itemCount;document.querySelector('#checkout-subtotal').textContent=money(subtotal);const discountRow=document.querySelector('#checkout-discount-row');if(discountRow){discountRow.style.display=affiliate.valid?'flex':'none';document.querySelector('#checkout-discount-label').textContent='Affiliate discount '+affiliate.code+' ('+affiliate.percent+'%)';document.querySelector('#checkout-discount').textContent='-'+money(affiliate.discountAmount);}document.querySelector('#checkout-total').textContent=money(total);syncAffiliateUI();root.innerHTML=cart.length?cart.map(item=>{const qty=Math.max(1,parseInt(item.qty,10)||1);return `<div class="mini-item"><b>${escapeHTML(KL_PRODUCTS[item.slug]?.name||item.name||item.slug)}</b><span>${escapeHTML(item.size)} · Qty ${qty} · ${money(itemPrice(item)*qty)}</span></div>`}).join(''):'<div class="notice-box">Your cart is empty. Add products before checkout.</div>';updateCartCount();}
+// The discount follows the APPLIED rule, never the text being typed, so the
+  // total cannot move until Apply Code is pressed. appliedAffiliateRule holds
+  // what the server said the code is worth; the code list is not in this page.
+  var appliedAffiliateRule=null;
+  var affiliateBusy=false;
+  var affiliateError='';
+  function normaliseAffiliate(raw){return window.KL_AFFILIATES?window.KL_AFFILIATES.normalise(raw):String(raw||'').trim().toUpperCase();}
+  function currentAffiliateCode(){return appliedAffiliateRule?appliedAffiliateRule.code:'';}
+  function typedAffiliateCode(){var input=document.querySelector('#checkout-affiliate-code');return normaliseAffiliate(input?input.value:'');}
+/* Fulfillment and payment gating.
+   Local pickup and local delivery are only offered for Orlando addresses, and
+   cash only when fulfilment is local. Disabling the options explains itself
+   better than rejecting the order later, but the server enforces the same two
+   rules, because a disabled <option> is only a hint. */
+  (function(){
+    var city=document.querySelector('#checkout-addr-city');
+    var ship=document.querySelector('#checkout-shipping-method');
+    var pay=document.querySelector('#checkout-payment-preference');
+    var shipHint=document.querySelector('#fulfillment-hint');
+    var payHint=document.querySelector('#payment-hint');
+    if(!ship||!pay)return;
+    var LOCAL=['Local delivery','Local pickup'];
+    var CASH='Cash on pickup/delivery';
+    var DEFAULT_SHIP='FedEx 3-7 days';
+    var DEFAULT_PAY='Zelle after confirmation';
+    function isLocalCity(){
+      return /^orlando$/i.test((((city&&city.value)||'')).trim());
+    }
+    function optionFor(select,value){
+      for(var i=0;i<select.options.length;i++){
+        if(select.options[i].value===value)return select.options[i];
+      }
+      return null;
+    }
+    function syncPayment(){
+      var local=LOCAL.indexOf(ship.value)>-1;
+      var o=optionFor(pay,CASH);
+      if(o)o.disabled=!local;
+      if(!local&&pay.value===CASH)pay.value=DEFAULT_PAY;
+      if(payHint)payHint.textContent=local?'':'Cash is available with local pickup or local delivery only.';
+    }
+    function syncFulfillment(){
+      var allowed=isLocalCity();
+      LOCAL.forEach(function(v){
+        var o=optionFor(ship,v);
+        if(o)o.disabled=!allowed;
+      });
+      var reset=(!allowed&&LOCAL.indexOf(ship.value)>-1);
+      if(reset)ship.value=DEFAULT_SHIP;
+      if(shipHint)shipHint.textContent=allowed?'':'Local pickup and local delivery are available for Orlando addresses only.';
+      syncPayment();
+      // A reset changes the fee, so the summary has to follow.
+      if(reset&&typeof renderCheckout==='function')renderCheckout();
+    }
+    if(city)city.addEventListener('input',syncFulfillment);
+    ship.addEventListener('change',function(){syncPayment();renderCheckout();});
+    syncFulfillment();
+    // fillAddressFields() calls this after a saved address changes the city.
+    window.KL_SYNC_FULFILMENT=syncFulfillment;
+  })();
+
+  /* Mirrors SHIPPING_FEES in server.py. The server recomputes the fee when the
+     order is placed, so this is display only. */
+  const KL_SHIPPING_FEES={'FedEx 3-7 days':{fee:10,label:'Shipping'},'Local delivery':{fee:5,label:'Gas fee'},'Local pickup':{fee:0,label:'Pickup'}};
+  function currentShippingFee(){
+    var sel=document.querySelector('#checkout-shipping-method');
+    return KL_SHIPPING_FEES[sel?sel.value:'']||{fee:0,label:'Shipping'};
+  }
+  function currentCheckoutSummary(){const cart=readCart();const itemCount=cart.reduce((n,i)=>n+(parseInt(i.qty,10)||0),0);const subtotal=cart.reduce((n,i)=>n+itemPrice(i)*(parseInt(i.qty,10)||0),0);const affiliate=window.KL_AFFILIATES?window.KL_AFFILIATES.discountFor(appliedAffiliateRule,subtotal):{valid:false,code:'',discountAmount:0,total:subtotal};const shipping=currentShippingFee();const goods=affiliate.valid?affiliate.total:subtotal;const total=Math.round((goods+(cart.length?shipping.fee:0))*100)/100;return{cart,itemCount,subtotal,total,affiliate,shipping,shippingFee:cart.length?shipping.fee:0};}
+function syncAffiliateUI(){const input=document.querySelector('#checkout-affiliate-code');const status=document.querySelector('#affiliate-status');if(input&&window.KL_AFFILIATES&&!input.dataset.affiliatePrefilled){var saved=window.KL_AFFILIATES.saved();if(saved&&!input.value)input.value=saved;input.dataset.affiliatePrefilled='1';}if(!status)return;const {affiliate}=currentCheckoutSummary();const typed=typedAffiliateCode();const applied=currentAffiliateCode();status.classList.remove('error');if(affiliateBusy){status.textContent='Checking code\u2026';return;}if(affiliateError){status.textContent=affiliateError;status.classList.add('error');return;}if(typed!==applied){status.textContent=typed?('Press Apply Code to use '+typed+'.'):'Press Apply Code to remove the current code.';return;}if(!affiliate.valid){status.textContent='Enter a promo or affiliate code if you have one.';return;}status.textContent='Code '+affiliate.code+' applied: '+window.KL_AFFILIATES.describe(appliedAffiliateRule)+' ('+money(affiliate.discountAmount)+' saved).';}
+function renderCheckout(){const {cart,itemCount,subtotal,total,affiliate,shipping,shippingFee}=currentCheckoutSummary();const root=document.querySelector('#checkout-items');document.querySelector('#checkout-count').textContent=itemCount;document.querySelector('#checkout-subtotal').textContent=money(subtotal);const discountRow=document.querySelector('#checkout-discount-row');if(discountRow){discountRow.style.display=affiliate.valid?'flex':'none';document.querySelector('#checkout-discount-label').textContent='Affiliate discount '+affiliate.code+' ('+window.KL_AFFILIATES.describe(affiliate)+')';document.querySelector('#checkout-discount').textContent='-'+money(affiliate.discountAmount);}(function(){var lbl=document.querySelector('#checkout-shipping-label'),amt=document.querySelector('#checkout-shipping-fee');if(lbl)lbl.textContent=shipping.label;if(amt)amt.textContent=shippingFee?money(shippingFee):(cart.length?'Free':money(0));})();document.querySelector('#checkout-total').textContent=money(total);syncAffiliateUI();root.innerHTML=cart.length?cart.map(item=>{const qty=Math.max(1,parseInt(item.qty,10)||1);return `<div class="mini-item"><b>${escapeHTML(KL_PRODUCTS[item.slug]?.name||item.name||item.slug)}</b><span>${escapeHTML(item.size)} · Qty ${qty} · ${money(itemPrice(item)*qty)}</span></div>`}).join(''):'<div class="notice-box">Your cart is empty. Add products before checkout.</div>';updateCartCount();}
 function currentUserEmail(){try{var d=localStorage.getItem('knightLabsLoggedIn');return d?(JSON.parse(d).email||''):'';}catch(e){return '';}}
 function savedAddresses(){var email=currentUserEmail();if(!email)return [];try{return JSON.parse(localStorage.getItem('knightLabsAddresses_'+email)||'[]');}catch(e){return [];}}
 function fillAddressFields(addr){
@@ -145,6 +218,9 @@ function fillAddressFields(addr){
   if(addr&&addr.phone&&!document.querySelector('#checkout-phone').value){
     document.querySelector('#checkout-phone').value=addr.phone;
   }
+  // Choosing a saved address changes the city, which decides whether local
+  // fulfilment is on the table.
+  if(window.KL_SYNC_FULFILMENT)window.KL_SYNC_FULFILMENT();
 }
 function initSavedAddresses(){
   var email=currentUserEmail();
@@ -279,7 +355,7 @@ function saveOrderToAccount(order){
   localStorage.setItem(key,JSON.stringify(orders));
 }
 function showCheckoutErrors(messages){const box=document.querySelector('#checkout-errors');if(!messages.length){box.style.display='none';box.innerHTML='';return;}box.style.display='block';box.innerHTML='<b>Please fix the following:</b><ul style="margin:8px 0 0 20px">'+messages.map(m=>`<li>${m}</li>`).join('')+'</ul>';box.scrollIntoView({behavior:'smooth',block:'center'});}
-document.querySelector('#checkout-form').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const data=Object.fromEntries(new FormData(form).entries());const {cart,itemCount,subtotal,total}=currentCheckoutSummary();const errors=[];if(!cart.length)errors.push('Your cart is empty. Add products before checkout.');if(!data.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))errors.push('Enter a valid email address.');if(!data.name||data.name.trim().split(/\s+/).length<2)errors.push('Enter a first and last name.');if(!data.addrName||!data.addrName.trim())errors.push('Enter the full name for the shipping address.');if(!data.addrStreet||data.addrStreet.trim().length<4)errors.push('Enter a street address.');if(!data.addrCity||!data.addrCity.trim())errors.push('Enter a city.');if(!data.addrState||!data.addrState.trim())errors.push('Enter a state or province.');if(!data.addrZip||!data.addrZip.trim())errors.push('Enter a postal code.');if(!data.addrCountry||!data.addrCountry.trim())errors.push('Enter a country.');if(!document.querySelector('#checkout-ack').checked)errors.push('Confirm the research-use acknowledgment.');if(errors.length){showCheckoutErrors(errors);return;}const payload={
+document.querySelector('#checkout-form').addEventListener('submit',event=>{event.preventDefault();const form=event.currentTarget;const data=Object.fromEntries(new FormData(form).entries());const {cart,itemCount,subtotal,total}=currentCheckoutSummary();const errors=[];if(!cart.length)errors.push('Your cart is empty. Add products before checkout.');if(!data.email||!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email))errors.push('Enter a valid email address.');if(!data.name||data.name.trim().split(/\s+/).length<2)errors.push('Enter a first and last name.');if(!data.phone||!data.phone.trim())errors.push('Enter a phone number.');else if((data.phone.match(/\d/g)||[]).length<10)errors.push('Enter a phone number with at least 10 digits.');if(!data.addrName||!data.addrName.trim())errors.push('Enter the full name for the shipping address.');if(!data.addrStreet||data.addrStreet.trim().length<4)errors.push('Enter a street address.');if(!data.addrCity||!data.addrCity.trim())errors.push('Enter a city.');if(!data.addrState||!data.addrState.trim())errors.push('Enter a state or province.');if(!data.addrZip||!data.addrZip.trim())errors.push('Enter a postal code.');if(!data.addrCountry||!data.addrCountry.trim())errors.push('Enter a country.');if(!document.querySelector('#checkout-ack').checked)errors.push('Confirm the research-use acknowledgment.');if(errors.length){showCheckoutErrors(errors);return;}const payload={
     email:data.email.trim(),
     name:data.name.trim(),
     phone:(data.phone||'').trim(),
@@ -309,7 +385,12 @@ document.querySelector('#checkout-form').addEventListener('submit',event=>{event
           empty_cart:'Your cart is empty. Add products before checkout.',
           too_many_items:'That is too many items for one order. Please split it.',
           invalid_items:'Something is wrong with the items in your cart. Try removing and re-adding them.',
-          invalid_affiliate_code:'That affiliate code is not active. Remove it or try another code.'
+          invalid_affiliate_code:'That affiliate code is not active. Remove it or try another code.',
+          invalid_shipping_method:'Choose a fulfillment option from the list.',
+          invalid_payment_method:'Choose a payment option from the list.',
+          local_requires_orlando:'Local pickup and local delivery are available for Orlando addresses only.',
+          cash_requires_local:'Cash is available with local pickup or local delivery only.',
+          invalid_phone:'Enter a phone number with at least 10 digits.'
         };
         // The cart is deliberately left intact so nothing is lost on failure.
         showCheckoutErrors([codes[result.body&&result.body.code]||'We could not place your order. Please try again.']);
@@ -338,7 +419,40 @@ document.querySelector('#checkout-form').addEventListener('submit',event=>{event
     });
 });
 renderCheckout();
-(function(){var input=document.querySelector('#checkout-affiliate-code');var apply=document.querySelector('#apply-affiliate-code');if(input){input.addEventListener('input',renderCheckout);input.addEventListener('blur',renderCheckout);}if(apply){apply.addEventListener('click',function(){if(window.KL_AFFILIATES)window.KL_AFFILIATES.save(input.value);renderCheckout();});}})();
+(function(){var input=document.querySelector('#checkout-affiliate-code');var apply=document.querySelector('#apply-affiliate-code');
+  function setApplied(rule){appliedAffiliateRule=rule;if(window.KL_AFFILIATES)window.KL_AFFILIATES.save(rule?rule.code:'');renderCheckout();}
+  function applyCode(){
+    if(affiliateBusy)return;
+    var typed=typedAffiliateCode();
+    affiliateError='';
+    if(!typed){setApplied(null);return;}
+    affiliateBusy=true;syncAffiliateUI();
+    if(apply)apply.disabled=true;
+    var subtotal=currentCheckoutSummary().subtotal;
+    window.KL_AFFILIATES.validate(typed,subtotal).then(function(rule){
+      affiliateBusy=false;
+      if(apply)apply.disabled=false;
+      if(!rule){affiliateError='Code '+typed+' is not valid.';setApplied(null);return;}
+      setApplied(rule);
+    });
+  }
+  if(input){
+    /* Typing only refreshes the hint. It must not touch the total. */
+    input.addEventListener('input',function(){affiliateError='';syncAffiliateUI();});
+    input.addEventListener('keydown',function(e){if(e.key==='Enter'){e.preventDefault();applyCode();}});
+  }
+  if(apply)apply.addEventListener('click',applyCode);
+  /* Re-check a code remembered from a referral link or an earlier visit, so a
+     code that has since been paused or deleted stops discounting. */
+  (function(){
+    var remembered=window.KL_AFFILIATES?window.KL_AFFILIATES.saved():'';
+    if(!remembered)return;
+    if(input&&!input.value)input.value=remembered;
+    window.KL_AFFILIATES.validate(remembered,currentCheckoutSummary().subtotal).then(function(rule){
+      if(rule)setApplied(rule);else{window.KL_AFFILIATES.save('');renderCheckout();}
+    });
+  })();
+})();
 initSavedAddresses();
 (function(){
   ['#checkout-addr-name','#checkout-addr-street','#checkout-addr-city',

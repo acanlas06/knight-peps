@@ -78,7 +78,7 @@ main{flex:1;padding:44px 0 70px}
         <div style="height:14px"></div>
         <div class="panel-head">Items</div>
         <div id="orderItems"></div>
-        <div class="totals" style="font-size:15px;border-top:1px solid var(--line)"><span>Subtotal</span><span id="orderSubtotal">$0</span></div><div class="totals" id="orderDiscountRow" style="display:none;font-size:15px;color:#8c6713;border-top:1px solid var(--line)"><span id="orderDiscountLabel">Affiliate discount</span><span id="orderDiscount">-$0</span></div><div class="totals"><span>Total</span><span id="orderTotal">$0</span></div>
+        <div class="totals" style="font-size:15px;border-top:1px solid var(--line)"><span>Subtotal</span><span id="orderSubtotal">$0</span></div><div class="totals" id="orderDiscountRow" style="display:none;font-size:15px;color:#8c6713;border-top:1px solid var(--line)"><span id="orderDiscountLabel">Affiliate discount</span><span id="orderDiscount">-$0</span></div><div class="totals" id="orderShippingRow" style="display:none;font-size:15px;border-top:1px solid var(--line)"><span id="orderShippingLabel">Shipping</span><span id="orderShipping">$0</span></div><div class="totals"><span>Total</span><span id="orderTotal">$0</span></div>
         <div class="note">No payment has been collected on this website. Knight Labs will confirm availability and the final total, then send payment instructions directly.</div>
       </div>
 
@@ -179,7 +179,12 @@ main{flex:1;padding:44px 0 70px}
       };
       document.getElementById('orderProgressLabel').textContent=LABELS[status]||'';
     }
-    document.getElementById('orderSubtotal').textContent=money(o.subtotal||o.total);var discount=Number(o.discountAmount||0);if(discount>0){document.getElementById('orderDiscountRow').style.display='flex';document.getElementById('orderDiscountLabel').textContent='Affiliate discount '+(((o.affiliate||{}).code)||'')+' ('+(((o.affiliate||{}).percent)||'')+'%)';document.getElementById('orderDiscount').textContent='-'+money(discount);}document.getElementById('orderTotal').textContent=money(o.total);
+    document.getElementById('orderSubtotal').textContent=money(o.subtotal||o.total);
+    // Orders placed before delivery charges existed have no shippingFee.
+    var shipFee=Number(o.shippingFee||0);
+    var shipRow=document.getElementById('orderShippingRow');
+    if(shipRow&&shipFee>0){shipRow.style.display='flex';document.getElementById('orderShippingLabel').textContent=o.shippingFeeLabel||'Shipping';document.getElementById('orderShipping').textContent=money(shipFee);}
+    var discount=Number(o.discountAmount||0);if(discount>0){document.getElementById('orderDiscountRow').style.display='flex';document.getElementById('orderDiscountLabel').textContent='Affiliate discount '+(((o.affiliate||{}).code)||'')+' ('+(window.KL_AFFILIATES?window.KL_AFFILIATES.describe(o.affiliate):'')+')';document.getElementById('orderDiscount').textContent='-'+money(discount);}document.getElementById('orderTotal').textContent=money(o.total);
 
     document.getElementById('orderItems').innerHTML=(o.items||[]).map(function(i){
       return '<div class="item"><div><div class="item-name">'+esc(i.name)+'</div>'
@@ -199,11 +204,19 @@ main{flex:1;padding:44px 0 70px}
     document.getElementById('orderDetails').innerHTML=rows.join('<br><br>');
 
     // Still unpaid and paying by Zelle? Keep the instructions to hand.
-    if(window.KL_ZELLE&&window.KL_ZELLE.isZelle(o.paymentPreference)&&status==='Unpaid'){
-      window.KL_ZELLE.styles();
+    // Feature-detected: a cached zelle.js without these helpers must not abort
+    // the render of the whole order.
+    var kz=window.KL_ZELLE||{};
+    if(status==='Unpaid'&&typeof kz.isZelle==='function'&&kz.isZelle(o.paymentPreference)&&typeof kz.panel==='function'){
+      if(typeof kz.styles==='function')kz.styles();
       var host=document.createElement('div');
-      host.innerHTML=window.KL_ZELLE.panel(o.orderNumber,o.total);
+      host.innerHTML=kz.panel(o.orderNumber,o.total);
       document.querySelector('#orderItems').parentNode.appendChild(host.firstChild);
+    }else if(status==='Unpaid'&&typeof kz.isCash==='function'&&kz.isCash(o.paymentPreference)&&typeof kz.cashPanel==='function'){
+      if(typeof kz.styles==='function')kz.styles();
+      var cashHost=document.createElement('div');
+      cashHost.innerHTML=kz.cashPanel(o.total);
+      document.querySelector('#orderItems').parentNode.appendChild(cashHost.firstChild);
     }
 
     view.style.display='block';

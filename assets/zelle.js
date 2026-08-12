@@ -19,6 +19,34 @@ window.KL_ZELLE = {
     return /zelle/i.test(String(preference || ''));
   },
 
+  /* Paying cash on pickup or delivery? */
+  isCash: function (preference) {
+    return /cash/i.test(String(preference || ''));
+  },
+
+  /* Cash orders get their own next steps. Reuses the Zelle panel styling so
+     both payment routes look like part of the same page. */
+  cashPanel: function (total) {
+    var z = window.KL_ZELLE;
+    return ''
+      + '<div class="kl-zelle">'
+      + '<div class="kl-zelle-head">Paying with cash</div>'
+      + '<div class="kl-zelle-steps">'
+      + '<div class="kl-zelle-step"><span>1</span><div>Knight Labs will confirm the '
+      + 'availability of your selected products.<small>Nothing is charged on this '
+      + 'website.</small></div></div>'
+      + '<div class="kl-zelle-step"><span>2</span><div>We will then contact you '
+      + 'directly, by phone or email, to arrange delivery.<small>Use the contact '
+      + 'details you entered at checkout.</small></div></div>'
+      + '<div class="kl-zelle-step"><span>3</span><div>Bring exactly '
+      + '<b>' + z.money(total) + '</b> in cash.<small>This is the full order total, '
+      + 'including any delivery charge.</small></div></div>'
+      + '</div>'
+      + '<div class="kl-cash-note"><b>Please bring the exact amount.</b> '
+      + 'We do not carry change, so we cannot break larger notes.</div>'
+      + '</div>';
+  },
+
   money: function (n) {
     return '$' + Number(n || 0).toLocaleString(undefined, {
       minimumFractionDigits: 2, maximumFractionDigits: 2
@@ -91,6 +119,9 @@ window.KL_ZELLE = {
       + 'font-weight:950;display:flex;align-items:center;justify-content:center}'
       + '.kl-zelle-step b{font-weight:950}'
       + '.kl-zelle-step small{display:block;margin-top:2px;font-size:12px;opacity:.75;line-height:1.5}'
+      + '.kl-cash-note{margin-top:16px;padding:12px 14px;border-radius:12px;'
+      + 'border:1px solid rgba(212,175,55,.45);background:rgba(212,175,55,.14);'
+      + 'font-size:14px;line-height:1.55}'
       + '.kl-zelle-qr{text-align:center;flex:0 0 auto}'
       + '.kl-zelle-qr img{display:block;border:1px solid rgba(212,175,55,.4);border-radius:10px;'
       + 'background:#fff;padding:6px}'

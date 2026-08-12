@@ -15,7 +15,7 @@ STAMP=$(date -u +%Y%m%d-%H%M%S)
 mkdir -p "$BACKUP_DIR"
 
 FILES=()
-for name in accounts.json orders.json inventory.json analytics.json admin-config.json; do
+for name in accounts.json orders.json inventory.json analytics.json admin-config.json affiliates.json; do
   [[ -f "$DATA_DIR/$name" ]] && FILES+=("$name")
 done
 

@@ -48,6 +48,7 @@ ACCOUNTS_FILE = os.path.join(DATA_DIR, "accounts.json")
 ORDERS_FILE = os.path.join(DATA_DIR, "orders.json")
 INVENTORY_FILE = os.path.join(DATA_DIR, "inventory.json")
 ANALYTICS_FILE = os.path.join(DATA_DIR, "analytics.json")
+AFFILIATES_FILE = os.path.join(DATA_DIR, "affiliates.json")
 OUTBOX_DIR = os.path.join(DATA_DIR, "outbox")
 PBKDF2_ITERATIONS = 260000
 EMAIL_RE = re.compile(r"^[^@\s]+@[^@\s]+\.[^@\s]+$")
@@ -64,22 +65,40 @@ ORDER_TOKEN_BYTES = 32   # order numbers are guessable, so the token guards acce
 MAX_ORDER_ITEMS = 60
 MAX_ORDER_BODY_BYTES = 60_000
 
-# Affiliate / promo codes. These rules are validated server-side so customers
-# cannot invent their own discount by editing browser storage or JavaScript.
-AFFILIATE_CODES = {
-    "AC": {
-        "label": "AC Affiliate",
-        "percent": 15,
-        "active": True,
-    },
-    "TGOMEZ": {
-        "label": "TGomez Affiliate",
-        "percent": 15,
-        "active": True,
-    },
+# Affiliate / promo codes.
+#
+# Codes live in affiliates.json so they can be managed from the admin page
+# without a deploy. This map only seeds that file the first time it is needed,
+# so the two codes that predate the admin UI are not lost.
+#
+# Discounts are always computed server-side from this store. The browser is
+# never sent the list of codes: it asks /api/validate-affiliate about one code
+# at a time, so unpublished codes cannot be discovered by reading page source.
+AFFILIATE_SEED = {
+    "AC": {"label": "AC Affiliate", "type": "percent", "value": 15.0, "active": True},
+    "TGOMEZ": {"label": "TGomez Affiliate", "type": "percent", "value": 15.0, "active": True},
 }
+AFFILIATE_TYPES = ("percent", "amount")
+MAX_AFFILIATE_CODES = 200
 
 # Order lifecycle. Order matters — the dashboard renders them in this sequence.
+# Fulfilment and payment. Local options depend on the address, and cash on the
+# fulfilment being local, so the two selects cannot be set independently. The
+# browser disables the invalid combinations; these are the authoritative checks.
+FULFILMENT_METHODS = ["FedEx 3-7 days", "Local delivery", "Local pickup"]
+LOCAL_FULFILMENT = ("Local delivery", "Local pickup")
+LOCAL_FULFILMENT_CITY = "orlando"
+# Delivery charges, keyed by fulfilment method. Pickup costs the customer
+# nothing because there is nothing to move.
+SHIPPING_FEES = {
+    "FedEx 3-7 days": (10.0, "Shipping"),
+    "Local delivery": (5.0, "Gas fee"),
+    "Local pickup": (0.0, "Pickup"),
+}
+
+PAYMENT_METHODS = ["Zelle after confirmation", "Cash on pickup/delivery"]
+CASH_PAYMENT = "Cash on pickup/delivery"
+
 ORDER_STATUSES = ["Unpaid", "Paid", "On its way", "Delivered"]
 DEFAULT_ORDER_STATUS = "Unpaid"
 # Cancelled sits outside the pipeline: it is terminal, excluded from revenue,
@@ -351,21 +370,89 @@ def normalise_affiliate_code(value):
     return re.sub(r"[^A-Z0-9_-]", "", clean_text(value, 40).upper())
 
 
+def normalise_affiliate_rule(raw):
+    """Coerce a stored or submitted rule into a known shape, or None."""
+    if not isinstance(raw, dict):
+        return None
+    kind = str(raw.get("type") or "percent").strip().lower()
+    if kind not in AFFILIATE_TYPES:
+        return None
+    try:
+        # "percent" is the legacy field name; accept it so pre-existing
+        # affiliates.json files written before the type switch still load.
+        value = float(raw.get("value", raw.get("percent", 0)) or 0)
+    except (TypeError, ValueError):
+        return None
+    if kind == "percent" and not (0 < value < 100):
+        return None
+    if kind == "amount" and value <= 0:
+        return None
+    return {
+        "label": clean_text(raw.get("label") or "", 80),
+        "type": kind,
+        "value": round(value, 2),
+        "active": bool(raw.get("active", True)),
+    }
+
+
+def load_affiliates():
+    """Read the code store, seeding it from AFFILIATE_SEED on first use."""
+    if not os.path.exists(AFFILIATES_FILE):
+        seeded = {c: dict(r) for c, r in AFFILIATE_SEED.items()}
+        save_affiliates(seeded)
+        return seeded
+    try:
+        with open(AFFILIATES_FILE, "r", encoding="utf-8") as handle:
+            raw = json.load(handle)
+    except (OSError, ValueError) as exc:
+        # A malformed file must not silently grant or deny every discount
+        # without saying so in the log.
+        print(f"[affiliates] Could not read affiliates.json ({exc})", flush=True)
+        return {}
+    codes = raw.get("codes") if isinstance(raw, dict) else None
+    if not isinstance(codes, dict):
+        return {}
+    out = {}
+    for code, rule in codes.items():
+        code = normalise_affiliate_code(code)
+        clean = normalise_affiliate_rule(rule)
+        if code and clean:
+            out[code] = clean
+    return out
+
+
+def save_affiliates(codes):
+    payload = {"codes": codes}
+    tmp = AFFILIATES_FILE + ".tmp"
+    with open(tmp, "w", encoding="utf-8") as handle:
+        json.dump(payload, handle, indent=2)
+    os.replace(tmp, AFFILIATES_FILE)
+
+
 def affiliate_discount_for(code, subtotal):
+    """Resolve a code to (rule, discount, error). The single source of truth
+    for what a code is worth — the browser's figure is never trusted."""
     code = normalise_affiliate_code(code)
     if not code:
         return None, 0.0, None
-    rule = AFFILIATE_CODES.get(code)
+    rule = load_affiliates().get(code)
     if not rule or not rule.get("active"):
         return None, 0.0, "invalid_affiliate_code"
-    percent = float(rule.get("percent") or 0)
-    if percent <= 0 or percent >= 100:
-        return None, 0.0, "invalid_affiliate_code"
-    discount = round(float(subtotal) * percent / 100, 2)
+    subtotal = max(0.0, float(subtotal or 0))
+    if rule["type"] == "percent":
+        discount = round(subtotal * rule["value"] / 100, 2)
+    else:
+        # A fixed amount can never exceed the subtotal, so a total can never
+        # go negative and a small order cannot become a refund.
+        discount = round(min(rule["value"], subtotal), 2)
     return {
         "code": code,
         "label": clean_text(rule.get("label") or code, 80),
-        "percent": round(percent, 2),
+        "type": rule["type"],
+        "value": rule["value"],
+        # Kept for the existing dashboard and stored orders, which read
+        # "percent". Zero for fixed-amount codes.
+        "percent": rule["value"] if rule["type"] == "percent" else 0,
     }, discount, None
 
 
@@ -405,11 +492,30 @@ def sanitise_order(payload):
 
     subtotal = round(sum(i["lineTotal"] for i in items), 2)
     item_count = sum(i["qty"] for i in items)
+
+    # Fulfilment is arranged by phone, so a contactable number is required.
+    # Counting digits rather than pattern-matching keeps (407) 555-0123,
+    # 407-555-0123 and +1 407 555 0123 all valid.
+    phone = clean_text(payload.get("phone"), 60)
+    if len(re.sub(r"\D", "", phone)) < 10:
+        return None, "invalid_phone"
+
+    shipping_method = clean_text(payload.get("shippingMethod"), 80)
+    payment_method = clean_text(payload.get("paymentPreference"), 80)
+    if shipping_method not in FULFILMENT_METHODS:
+        return None, "invalid_shipping_method"
+    if payment_method not in PAYMENT_METHODS:
+        return None, "invalid_payment_method"
+
     affiliate, discount_amount, affiliate_error = affiliate_discount_for(
         payload.get("affiliateCode"), subtotal)
     if affiliate_error:
         return None, affiliate_error
-    total = round(max(0.0, subtotal - discount_amount), 2)
+
+    shipping_fee, shipping_fee_label = SHIPPING_FEES.get(shipping_method, (0.0, ""))
+    # The discount comes off the goods, then the delivery charge is added, so a
+    # large fixed-amount code cannot also wipe out the shipping.
+    total = round(max(0.0, subtotal - discount_amount) + shipping_fee, 2)
 
     address_in = payload.get("shippingAddress")
     address = None
@@ -417,18 +523,26 @@ def sanitise_order(payload):
         address = {k: clean_text(address_in.get(k), 120) for k in
                    ("name", "street", "city", "state", "zip", "country")}
 
+    city = (address or {}).get("city", "")
+    if shipping_method in LOCAL_FULFILMENT and city.strip().lower() != LOCAL_FULFILMENT_CITY:
+        return None, "local_requires_orlando"
+    if payment_method == CASH_PAYMENT and shipping_method not in LOCAL_FULFILMENT:
+        return None, "cash_requires_local"
+
     return {
         "email": email,
         "customerName": clean_text(payload.get("name"), 120),
-        "phone": clean_text(payload.get("phone"), 60),
-        "shippingMethod": clean_text(payload.get("shippingMethod"), 80),
-        "paymentPreference": clean_text(payload.get("paymentPreference"), 80),
+        "phone": phone,
+        "shippingMethod": shipping_method,
+        "paymentPreference": payment_method,
         "shippingAddress": address,
         "items": items,
         "itemCount": item_count,
         "subtotal": subtotal,
         "discountAmount": discount_amount,
         "affiliate": affiliate,
+        "shippingFee": shipping_fee,
+        "shippingFeeLabel": shipping_fee_label,
         "total": total,
         "status": DEFAULT_ORDER_STATUS,
         "placedAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
@@ -476,8 +590,9 @@ def set_order_status(number, status, actor):
 PRODUCT_SLUGS = [
     "retatrutide", "tirzepatide", "semaglutide", "bpc-157", "tb500",
     "bpc-157-tb500-blend", "cjc-1295-without-dac-ipamorelin", "ipamorelin",
-    "cjc-1295-without-dac-mod-grf-1-29", "nad", "glutathione", "epithalon",
-    "semax", "selank", "ghk-cu",
+    "cjc-1295-without-dac-mod-grf-1-29", "tesamorelin",
+    "nad", "glutathione", "epithalon",
+    "semax", "selank", "ghk-cu", "bac-water",
 ]
 PRODUCT_NAMES = {
     "retatrutide": "Retatrutide", "tirzepatide": "Tirzepatide",
@@ -488,6 +603,7 @@ PRODUCT_NAMES = {
     "cjc-1295-without-dac-mod-grf-1-29": "CJC-1295 without DAC / Mod GRF 1-29",
     "nad": "NAD+", "glutathione": "Glutathione", "epithalon": "Epithalon",
     "semax": "Semax", "selank": "Selank", "ghk-cu": "GHK-CU",
+    "tesamorelin": "Tesamorelin", "bac-water": "BAC Water",
 }
 # Only the sizes a customer can actually buy — the data-size values on the
 # product page selector, which match KL_PRICES exactly. Category-page chips
@@ -508,6 +624,8 @@ PRODUCT_SIZES = {
     "semax": ["10mg"],
     "selank": ["10mg"],
     "ghk-cu": ["50mg"],
+    "tesamorelin": ["2mg", "5mg", "10mg", "20mg"],
+    "bac-water": ["3ml", "10ml"],
 }
 
 
@@ -882,6 +1000,66 @@ def all_orders_for_admin():
     return rows
 
 
+def admin_accounts():
+    """Registered accounts with their order history.
+
+    Built field by field on purpose. An account record holds salt, hash and
+    iterations, and none of that may ever reach a browser, so this constructs a
+    fresh dict rather than copying the record and deleting keys - a whitelist
+    cannot be defeated by a field added later.
+    """
+    with _lock:
+        accounts = load_accounts()
+    orders = all_orders_for_admin()
+    admins = {e.lower() for e in admin_emails()}
+
+    by_email = {}
+    for row in orders:
+        email = str(row.get("email") or "").strip().lower()
+        if email:
+            by_email.setdefault(email, []).append(row)
+
+    out = []
+    # Registered accounts, plus guests who ordered without one, so the list is
+    # every customer rather than only the ones who signed up.
+    for email in sorted(set(accounts) | set(by_email)):
+        rows = by_email.get(email, [])
+        live = [r for r in rows if r.get("status") != CANCELLED_STATUS]
+        cancelled = [r for r in rows if r.get("status") == CANCELLED_STATUS]
+        collected = [r for r in live if r.get("status") in ("Paid", "On its way", "Delivered")]
+        latest = rows[0] if rows else {}
+        record = accounts.get(email) or {}
+        out.append({
+            "email": email,
+            "hasAccount": email in accounts,
+            "isAdmin": email in admins,
+            "createdAt": record.get("createdAt") or "",
+            "name": clean_text(latest.get("customerName"), 120),
+            "phone": clean_text(latest.get("phone"), 60),
+            "orderCount": len(live),
+            "cancelledCount": len(cancelled),
+            "ordered": round(sum(float(r.get("total") or 0) for r in live), 2),
+            "collected": round(sum(float(r.get("total") or 0) for r in collected), 2),
+            "lastOrderAt": latest.get("placedAt") or "",
+            "orders": [{
+                "orderNumber": r.get("orderNumber"),
+                "placedAt": r.get("placedAt"),
+                "status": r.get("status"),
+                "total": r.get("total"),
+                "itemCount": r.get("itemCount"),
+                "shippingMethod": r.get("shippingMethod"),
+                "paymentPreference": r.get("paymentPreference"),
+                "affiliate": (r.get("affiliate") or {}).get("code", ""),
+                "items": [{"name": i.get("name"), "size": i.get("size"),
+                           "qty": i.get("qty"), "lineTotal": i.get("lineTotal")}
+                          for i in (r.get("items") or [])],
+                "shippingAddress": r.get("shippingAddress") or None,
+            } for r in rows],
+        })
+    out.sort(key=lambda a: (a["lastOrderAt"] or "", a["email"]), reverse=True)
+    return out
+
+
 def admin_stats():
     """Metrics derivable from stored orders. Behavioural metrics are not
     tracked yet, so they are reported as unavailable rather than faked."""
@@ -914,6 +1092,11 @@ def admin_stats():
             "total": 0.0,
             "collectedTotal": 0.0,
             "unpaidTotal": 0.0,
+            # Filled in from the code store; a code deleted after taking orders
+            # keeps its sales row but is marked inactive.
+            "type": "percent",
+            "value": round(float(percent or 0), 2),
+            "active": False,
         })
         if label and bucket["label"] == code:
             bucket["label"] = clean_text(label, 80)
@@ -921,10 +1104,16 @@ def admin_stats():
             bucket["percent"] = round(float(percent), 2)
         return bucket
 
-    # Show active configured codes even before they have their first order.
-    for code, rule in AFFILIATE_CODES.items():
-        if rule.get("active"):
-            referral_bucket(code, rule.get("label") or code, rule.get("percent") or 0)
+    # List every configured code, so a new or paused one still shows a row
+    # before it has taken its first order.
+    for code, rule in load_affiliates().items():
+        bucket = referral_bucket(
+            code, rule.get("label") or code,
+            rule["value"] if rule["type"] == "percent" else 0)
+        if bucket:
+            bucket["type"] = rule["type"]
+            bucket["value"] = rule["value"]
+            bucket["active"] = bool(rule.get("active"))
 
     for row in rows:
         status = row.get("status", DEFAULT_ORDER_STATUS)
@@ -1046,6 +1235,10 @@ def is_zelle(preference):
     return "zelle" in str(preference or "").lower()
 
 
+def is_cash(preference):
+    return "cash" in str(preference or "").lower()
+
+
 def build_order_email(order, link):
     message = EmailMessage()
     message["Subject"] = "Knight Labs order " + order["orderNumber"]
@@ -1064,6 +1257,20 @@ def build_order_email(order, link):
             address.get("name", ""), address.get("street", ""), address.get("city", ""),
             address.get("state", ""), address.get("zip", ""), address.get("country", "")))
 
+    cash_text = ""
+    if is_cash(order.get("paymentPreference")):
+        cash_text = (
+            "\nPAYING WITH CASH\n"
+            "  1. Knight Labs will confirm the availability of your selected products.\n"
+            "  2. We will then contact you directly, by phone or email, to arrange\n"
+            "     delivery.\n"
+            "  3. Please bring exactly %s in cash.\n\n"
+            "PLEASE BRING THE EXACT AMOUNT. We do not carry change, so we cannot\n"
+            "break larger notes. The amount above is the full order total, including\n"
+            "any delivery charge.\n"
+            % fmt(order["total"])
+        )
+
     zelle_text = ""
     if is_zelle(order.get("paymentPreference")):
         zelle_text = (
@@ -1078,6 +1285,13 @@ def build_order_email(order, link):
                order["orderNumber"], ZELLE_LINK)
         )
 
+    # Orders placed before delivery charges existed have no shippingFee, so the
+    # line is omitted rather than printed as $0.
+    fee_text = ""
+    if order.get("shippingFee"):
+        fee_text = "\n%s: %s" % (order.get("shippingFeeLabel") or "Shipping",
+                                 fmt(order["shippingFee"]))
+
     discount_text = ""
     if order.get("affiliate") and order.get("discountAmount"):
         discount_text = "\nAffiliate code %s: -%s" % (
@@ -1086,15 +1300,16 @@ def build_order_email(order, link):
     message.set_content(
         "Thanks for your order.\n\n"
         "Order %s\nPlaced %s\n\n"
-        "Items:\n%s\n\nSubtotal: %s%s\nTotal: %s\n%s\n%s"
+        "Items:\n%s\n\nSubtotal: %s%s%s\nTotal: %s\n%s\n%s"
         "View your order:\n%s\n\n"
         "Keep this link — it is the only way to view this order if you do not "
         "have an account.\n\n"
         "For research and laboratory use only. Not intended for human or "
         "veterinary consumption.\n\n— Knight Labs\n"
         % (order["orderNumber"], order["placedAt"], "\n".join(lines),
-           fmt(order.get("subtotal", order["total"])), discount_text, fmt(order["total"]),
-           address_text, zelle_text, link)
+           fmt(order.get("subtotal", order["total"])), discount_text, fee_text,
+           fmt(order["total"]),
+           address_text, zelle_text + cash_text, link)
     )
 
     rows = "".join(
@@ -1113,6 +1328,26 @@ def build_order_email(order, link):
             % (html_escape(address.get("name", "")), html_escape(address.get("street", "")),
                html_escape(address.get("city", "")), html_escape(address.get("state", "")),
                html_escape(address.get("zip", "")), html_escape(address.get("country", ""))))
+
+    cash_html = ""
+    if is_cash(order.get("paymentPreference")):
+        cash_html = (
+            '<div style="margin:24px 0;padding:18px;border:1px solid #dac89a;'
+            'border-radius:12px;background:#fff8e3">'
+            '<div style="font-size:11px;font-weight:900;letter-spacing:.12em;'
+            'text-transform:uppercase;color:#8c6713;margin-bottom:12px">Paying with cash</div>'
+            '<p style="margin:0 0 8px">1. Knight Labs will confirm the availability of '
+            'your selected products.</p>'
+            '<p style="margin:0 0 8px">2. We will then contact you directly, by phone or '
+            'email, to arrange delivery.</p>'
+            '<p style="margin:0 0 12px">3. Please bring exactly <strong>%s</strong> in cash.</p>'
+            '<p style="margin:0;padding:10px 12px;border-radius:10px;background:#f5efe5">'
+            '<strong>Please bring the exact amount.</strong> We do not carry change, so we '
+            'cannot break larger notes. This is the full order total, including any '
+            'delivery charge.</p>'
+            '</div>'
+            % fmt(order["total"])
+        )
 
     zelle_html = ""
     if is_zelle(order.get("paymentPreference")):
@@ -1148,6 +1383,13 @@ def build_order_email(order, link):
             '<td style="padding:8px 0;text-align:right;color:#8c6713">-%s</td></tr>'
             % (html_escape(order["affiliate"].get("code", "")), fmt(order.get("discountAmount", 0)))
         )
+    if order.get("shippingFee"):
+        total_rows += (
+            '<tr><td style="padding:8px 0">%s</td>'
+            '<td style="padding:8px 0;text-align:right">%s</td></tr>'
+            % (html_escape(order.get("shippingFeeLabel") or "Shipping"),
+               fmt(order["shippingFee"]))
+        )
     total_rows += (
         '<tr><td style="padding:12px 0;border-top:2px solid #dac89a"><strong>Total</strong></td>'
         '<td style="padding:12px 0;border-top:2px solid #dac89a;text-align:right">'
@@ -1175,7 +1417,7 @@ def build_order_email(order, link):
         'veterinary consumption.</p>'
         '</div></body></html>'
         % (html_escape(order["orderNumber"]), rows, total_rows, address_html,
-           zelle_html, html_escape(link)),
+           zelle_html + cash_html, html_escape(link)),
         subtype="html",
     )
     return message
@@ -1326,6 +1568,16 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._handle_admin_inventory()
         elif self.path == "/api/admin/set-stock":
             self._handle_admin_set_stock()
+        elif self.path == "/api/validate-affiliate":
+            self._handle_validate_affiliate()
+        elif self.path == "/api/admin/accounts":
+            self._handle_admin_accounts()
+        elif self.path == "/api/admin/affiliates":
+            self._handle_admin_affiliates()
+        elif self.path == "/api/admin/affiliate-save":
+            self._handle_admin_affiliate_save()
+        elif self.path == "/api/admin/affiliate-delete":
+            self._handle_admin_affiliate_delete()
         else:
             self._send_json(404, {"ok": False, "code": "not_found"})
 
@@ -1337,6 +1589,96 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._send_json(401, {"ok": False, "code": "not_authorised"})
             return None
         return email
+
+    def _handle_validate_affiliate(self):
+        """Check one code. Public, so it deliberately reveals nothing beyond
+        whether the submitted code is usable and what it is worth."""
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        try:
+            subtotal = max(0.0, float(data.get("subtotal") or 0))
+        except (TypeError, ValueError):
+            subtotal = 0.0
+        rule, discount, error = affiliate_discount_for(data.get("code"), subtotal)
+        if error or not rule:
+            # A wrong code and an inactive code answer identically, so the
+            # response cannot be used to enumerate which codes exist.
+            return self._send_json(200, {
+                "ok": True, "valid": False,
+                "code": normalise_affiliate_code(data.get("code")),
+            })
+        self._send_json(200, {
+            "ok": True, "valid": True,
+            "code": rule["code"], "label": rule["label"],
+            "type": rule["type"], "value": rule["value"],
+            "percent": rule["percent"],
+            "discountAmount": discount,
+            "total": round(max(0.0, subtotal - discount), 2),
+        })
+
+    def _handle_admin_accounts(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        self._send_json(200, {"ok": True, "accounts": admin_accounts()})
+
+    def _handle_admin_affiliates(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        codes = load_affiliates()
+        self._send_json(200, {"ok": True, "types": list(AFFILIATE_TYPES),
+                              "codes": [dict(rule, code=code)
+                                        for code, rule in sorted(codes.items())]})
+
+    def _handle_admin_affiliate_save(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        code = normalise_affiliate_code(data.get("code"))
+        if not code:
+            return self._send_json(400, {"ok": False, "code": "invalid_code"})
+        rule = normalise_affiliate_rule({
+            "label": data.get("label"),
+            "type": data.get("type"),
+            "value": data.get("value"),
+            "active": data.get("active", True),
+        })
+        if not rule:
+            return self._send_json(400, {"ok": False, "code": "invalid_rule"})
+        if not rule["label"]:
+            rule["label"] = code
+        with _lock:
+            codes = load_affiliates()
+            if code not in codes and len(codes) >= MAX_AFFILIATE_CODES:
+                return self._send_json(400, {"ok": False, "code": "too_many_codes"})
+            codes[code] = rule
+            save_affiliates(codes)
+        self._send_json(200, {"ok": True, "code": code, "rule": rule})
+
+    def _handle_admin_affiliate_delete(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        code = normalise_affiliate_code(data.get("code"))
+        with _lock:
+            codes = load_affiliates()
+            if code not in codes:
+                return self._send_json(404, {"ok": False, "code": "not_found"})
+            del codes[code]
+            save_affiliates(codes)
+        # Orders already placed keep their recorded discount; only future use
+        # of the code is stopped.
+        self._send_json(200, {"ok": True, "code": code})
 
     def _handle_admin_orders(self):
         data = self._read_json()
@@ -1560,6 +1902,9 @@ class Handler(http.server.SimpleHTTPRequestHandler):
                 "salt": salt.hex(),
                 "hash": digest.hex(),
                 "iterations": PBKDF2_ITERATIONS,
+                # Accounts created before this existed report no date rather
+                # than a made-up one.
+                "createdAt": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             }
             save_accounts(accounts)
         self._send_json(200, {"ok": True, "code": "created"})
