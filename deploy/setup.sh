@@ -90,9 +90,9 @@ fi
 if [[ ! -f "$DATA_DIR/telegram-config.json" ]]; then
   cat > "$DATA_DIR/telegram-config.json" <<'JSON'
 {
-  "_readme": "Order alerts to a phone via Telegram. Create a bot with @BotFather, put its token here, then set chatId to your own chat id and enabled to true. Alerts stay off while enabled is false or the token is blank.",
+  "_readme": "Order alerts to a phone via Telegram. Create a bot with @BotFather and put its token here. chatId takes one id, or a list of ids for several people, or add the bot to a group and use the group id. Alerts stay off while enabled is false or the token is blank.",
   "botToken": "",
-  "chatId": "",
+  "chatId": [],
   "enabled": false
 }
 JSON

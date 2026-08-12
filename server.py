@@ -1469,20 +1469,30 @@ def load_telegram_config():
         print(f"[alert] Could not read telegram-config.json ({exc})", flush=True)
         return None
     token = str(cfg.get("botToken") or "").strip()
-    chat = str(cfg.get("chatId") or "").strip()
-    if not token or not chat or cfg.get("enabled") is False:
+    # chatId may be a single id or a list, and chatIds is accepted as an alias,
+    # so a second recipient can be added without changing the shape of the file.
+    raw_chats = cfg.get("chatIds")
+    if raw_chats is None:
+        raw_chats = cfg.get("chatId")
+    if isinstance(raw_chats, (str, int)):
+        raw_chats = [raw_chats]
+    if not isinstance(raw_chats, list):
+        raw_chats = []
+    chats = []
+    for entry in raw_chats:
+        entry = str(entry).strip()
+        if entry and entry not in chats:
+            chats.append(entry)
+    if not token or not chats or cfg.get("enabled") is False:
         return None
-    return {"token": token, "chat": chat}
+    return {"token": token, "chats": chats}
 
 
-def telegram_send(text):
-    """Post one message. Returns True on success; never raises."""
-    cfg = load_telegram_config()
-    if not cfg:
-        return False
-    url = "https://api.telegram.org/bot%s/sendMessage" % cfg["token"]
+def telegram_send_one(token, chat, text):
+    """Post to a single chat. Returns True on success; never raises."""
+    url = "https://api.telegram.org/bot%s/sendMessage" % token
     payload = json.dumps({
-        "chat_id": cfg["chat"],
+        "chat_id": chat,
         "text": text,
         "parse_mode": "HTML",
         "disable_web_page_preview": True,
@@ -1494,15 +1504,84 @@ def telegram_send(text):
         with urllib.request.urlopen(request, timeout=10) as response:
             body = json.loads(response.read().decode("utf-8", "replace"))
         if not body.get("ok"):
-            print("[alert] Telegram refused the message: %s"
-                  % body.get("description", "no reason given"), flush=True)
+            print("[alert] Telegram refused the message for chat %s: %s"
+                  % (chat, body.get("description", "no reason given")), flush=True)
             return False
         return True
     except Exception as exc:  # noqa: BLE001
         # A push failure must never affect the order or the customer.
-        print("[alert] Telegram send failed (%s: %s)"
-              % (exc.__class__.__name__, exc), flush=True)
+        print("[alert] Telegram send failed for chat %s (%s: %s)"
+              % (chat, exc.__class__.__name__, exc), flush=True)
         return False
+
+
+def telegram_send(text):
+    """Post to every configured chat. Returns (sent, total).
+
+    Each recipient is attempted independently: one bad chat id must not stop the
+    others from being told about an order.
+    """
+    cfg = load_telegram_config()
+    if not cfg:
+        return (0, 0)
+    sent = 0
+    for chat in cfg["chats"]:
+        if telegram_send_one(cfg["token"], chat, text):
+            sent += 1
+    return (sent, len(cfg["chats"]))
+
+
+def telegram_discover_chats():
+    """List chats the bot has seen, so ids can be found without a browser URL
+    containing the token and without relying on a third-party bot.
+
+    Returns (chats, error). Only ids and names are returned; nothing is sent.
+    """
+    cfg = load_telegram_config()
+    if not cfg:
+        # Fall back to a token with no chat ids configured yet, which is exactly
+        # the state someone is in while trying to find their first id.
+        if not os.path.exists(TELEGRAM_CONFIG_FILE):
+            return ([], "not_configured")
+        try:
+            with open(TELEGRAM_CONFIG_FILE, "r", encoding="utf-8") as handle:
+                raw = json.load(handle)
+            token = str(raw.get("botToken") or "").strip()
+        except (OSError, ValueError):
+            return ([], "not_configured")
+        if not token:
+            return ([], "not_configured")
+    else:
+        token = cfg["token"]
+
+    url = "https://api.telegram.org/bot%s/getUpdates" % token
+    try:
+        with urllib.request.urlopen(url, timeout=10) as response:
+            body = json.loads(response.read().decode("utf-8", "replace"))
+    except Exception as exc:  # noqa: BLE001
+        print("[alert] getUpdates failed (%s: %s)"
+              % (exc.__class__.__name__, exc), flush=True)
+        return ([], "lookup_failed")
+    if not body.get("ok"):
+        print("[alert] getUpdates refused: %s"
+              % body.get("description", "no reason given"), flush=True)
+        return ([], "lookup_failed")
+
+    seen = {}
+    for update in body.get("result", []):
+        for key in ("message", "edited_message", "channel_post", "my_chat_member"):
+            chat = (update.get(key) or {}).get("chat")
+            if not isinstance(chat, dict) or chat.get("id") is None:
+                continue
+            name = chat.get("title") or " ".join(
+                filter(None, [chat.get("first_name"), chat.get("last_name")])) \
+                or chat.get("username") or ""
+            seen[str(chat["id"])] = {
+                "id": str(chat["id"]),
+                "type": chat.get("type", ""),
+                "name": clean_text(name, 80),
+            }
+    return (list(seen.values()), None)
 
 
 def build_order_alert(order, link):
@@ -1679,6 +1758,8 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             self._handle_admin_set_stock()
         elif self.path == "/api/validate-affiliate":
             self._handle_validate_affiliate()
+        elif self.path == "/api/admin/alert-chats":
+            self._handle_admin_alert_chats()
         elif self.path == "/api/admin/test-alert":
             self._handle_admin_test_alert()
         elif self.path == "/api/admin/accounts":
@@ -1728,6 +1809,21 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             "total": round(max(0.0, subtotal - discount), 2),
         })
 
+    def _handle_admin_alert_chats(self):
+        data = self._read_json()
+        if data is None:
+            return self._send_json(400, {"ok": False, "code": "invalid_input"})
+        if not self._require_admin(data):
+            return
+        chats, error = telegram_discover_chats()
+        configured = load_telegram_config() or {}
+        self._send_json(200, {
+            "ok": not error,
+            "code": error or "ok",
+            "chats": chats,
+            "configured": configured.get("chats", []),
+        })
+
     def _handle_admin_test_alert(self):
         """Send a sample alert, so setup can be verified without a real order."""
         data = self._read_json()
@@ -1749,9 +1845,13 @@ class Handler(http.server.SimpleHTTPRequestHandler):
             "paymentPreference": "Zelle after confirmation",
         }
         link = "%s/admin.html" % self._base_url()
-        ok = telegram_send(build_order_alert(sample, link))
-        self._send_json(200, {"ok": bool(ok),
-                              "code": "sent" if ok else "send_failed"})
+        sent, total = telegram_send(build_order_alert(sample, link))
+        self._send_json(200, {
+            "ok": sent > 0,
+            "code": "sent" if sent == total else ("partial" if sent else "send_failed"),
+            "sent": sent,
+            "recipients": total,
+        })
 
     def _handle_admin_accounts(self):
         data = self._read_json()
