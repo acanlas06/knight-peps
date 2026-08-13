@@ -145,7 +145,7 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
       <img src="assets/knight-labs-crest-icon-transparent.png" alt="Knight Labs">
       <span>Knight Labs<small>Admin</small></span>
     </a>
-    <div class="topbar-actions"><button type="button" id="findChatsBtn" title="List the Telegram chats your bot can see, with their ids">Find chat IDs</button><button type="button" id="testAlertBtn" title="Send a sample order alert to the configured phone">Test alert</button>
+    <div class="topbar-actions">
       <span id="adminWho"></span>
       <button type="button" id="refreshBtn">Refresh</button>
       <button type="button" id="signOutBtn">Sign out</button>
@@ -542,56 +542,6 @@ html[data-theme="dark"] .k-instock{color:#a7cc7d}html[data-theme="dark"] .k-low{
   document.addEventListener('keydown',function(e){
     if(e.key==='Escape'&&modal.classList.contains('open'))closeModal();
   });
-
-  /* ---------- phone alert setup ---------- */
-
-  (function(){
-    var btn=document.getElementById('findChatsBtn');
-    if(!btn)return;
-    btn.addEventListener('click',function(){
-      btn.disabled=true;
-      post('/api/admin/alert-chats',{}).then(function(r){
-        if(r.status===401){showGate();return;}
-        if(r.status===404){toast('Restart the server to enable phone alerts.');return;}
-        if(r.data.code==='not_configured'){toast('Add your bot token to the server first.');return;}
-        if(r.data.code==='lookup_failed'){toast('Telegram would not answer. Check the token and the server log.');return;}
-        var chats=r.data.chats||[];
-        if(!chats.length){
-          window.alert('No chats found yet.\n\nTelegram only reports a chat once the bot has seen a message there:\n\n'
-            +'\u2022 For a person: open the bot and send it any message.\n'
-            +'\u2022 For a group: add the bot to the group, then send /start in that group.\n\n'
-            +'Then press Find chat IDs again.');
-          return;
-        }
-        var already=r.data.configured||[];
-        window.alert('Chats your bot can see:\n\n'+chats.map(function(c){
-          return c.id+'   ('+(c.type||'?')+(c.name?', '+c.name:'')+')'
-            +(already.indexOf(c.id)>-1?'   [already configured]':'');
-        }).join('\n')+'\n\nPut the id you want into chatId in telegram-config.json.\nA list works for several: ["111","222"]');
-      }).catch(function(){toast('Could not reach the server');})
-        .finally(function(){btn.disabled=false;});
-    });
-  })();
-
-  /* ---------- phone alert test ---------- */
-
-  (function(){
-    var btn=document.getElementById('testAlertBtn');
-    if(!btn)return;
-    btn.addEventListener('click',function(){
-      btn.disabled=true;
-      post('/api/admin/test-alert',{}).then(function(r){
-        if(r.status===401){showGate();return;}
-        if(r.status===404){toast('Restart the server to enable phone alerts.');return;}
-        if(r.data.code==='not_configured'){toast('Phone alerts are not set up yet on the server.');return;}
-        if(!r.data.ok){toast('Telegram rejected the message. Check the server log.');return;}
-        var n=r.data.sent||0,t=r.data.recipients||0;
-        toast(n===t?('Test alert sent to '+n+' recipient'+(n===1?'':'s')+' \u2014 check your phone')
-                   :('Sent to '+n+' of '+t+' recipients. Check the server log for the rest.'));
-      }).catch(function(){toast('Could not reach the server');})
-        .finally(function(){btn.disabled=false;});
-    });
-  })();
 
   /* ---------- customer accounts ---------- */
 
